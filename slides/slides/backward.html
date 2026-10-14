@@ -1,0 +1,27 @@
+<section id="backward" data-transition="fade" style="background:#1B2128;color:#F1F3F4;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:36px">
+<p style="font-size:24px;font-weight:700;color:#EF6A5F;letter-spacing:3px">しくみ 2</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2;color:#F1F3F4">渋滞のかたまりは後ろへ進む</h2>
+<p style="font-size:30px;line-height:1.6;color:#DCE2E7">横軸はブレーキからの時間、縦軸はコース上の位置（モデルの計算）。車は右上へ進み、止まっている所（赤）は右下、つまり後ろへ進みます。</p>
+<x-embed style="position:absolute;left:128px;top:448px;width:1664px;height:492px"><!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;overflow:hidden;background:#11161C"><canvas id="c" width="3328" height="984" style="width:1664px;height:492px;display:block"></canvas><script>
+const L=230,C=4,S0=1.5,VM=13.5,SC=3.5,W=4,LA=0.4,TH=Math.tanh(SC/W),N=22,AA=1.5;
+const V=s=>{const q=s-S0;return q<=0?0:VM*(Math.tanh((q-SC)/W)+TH)/(1+TH)};
+const ST=[[0,[179,38,30]],[8,[226,88,26]],[18,[238,166,20]],[28,[88,166,104]],[40,[47,143,174]],[48,[62,118,196]]];
+function col(k){k=Math.max(0,Math.min(48,k));for(let i=1;i<ST.length;i++)if(k<=ST[i][0]){const a=ST[i-1][0],c0=ST[i-1][1],b=ST[i][0],c1=ST[i][1],f=(k-a)/(b-a);return'rgb('+c0.map((c,n)=>Math.round(c+(c1[n]-c)*f)).join(',')+')'}return'rgb(62,118,196)'}
+const x=[],v=[],ac=[];const v0=V(L/N-C);for(let i=0;i<N;i++){x.push(i*L/N);v.push(v0);ac.push(0)}
+function step(dt,brk){for(let i=0;i<N;i++){const j=(i+1)%N;let s=x[j]-x[i];if(s<0)s+=L;s-=C;let A=AA*(V(s)-v[i])+LA*(v[j]-v[i]);if(brk&&i===0)A=Math.min(A,-3);if(v[i]>v[j]){const nd=(v[i]*v[i]-v[j]*v[j])/(2*Math.max(s-.8,.1));A=Math.min(A,3-2*nd)}if(s<S0)A=Math.min(A,-v[i]/.4);ac[i]=Math.max(-9,Math.min(3,A))}for(let i=0;i<N;i++){v[i]=Math.max(0,v[i]+ac[i]*dt);x[i]=(x[i]+v[i]*dt)%L}}
+for(let i=0;i<800;i++)step(.05,false);
+const smp=[];for(let i=0;i<3600;i++){step(.05,i<30);if(i%5===4)smp.push({x:Float32Array.from(x),v:Float32Array.from(v)})}
+const cv=document.getElementById('c'),g=cv.getContext('2d');g.scale(2,2);
+const Wd=1664,Hd=492,pl=120,pr=28,pt=22,pb=62,pw=Wd-pl-pr,ph=Hd-pt-pb,cw=pw/smp.length,F='"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif';
+function axes(){g.fillStyle='#11161C';g.fillRect(0,0,Wd,Hd);g.strokeStyle='#2A313A';g.lineWidth=1;g.font='24px '+F;g.fillStyle='#B8C2CC';g.textAlign='right';g.textBaseline='middle';
+for(const m of[0,100,200]){const y=pt+ph-m/L*ph;g.beginPath();g.moveTo(pl,y);g.lineTo(pl+pw,y);g.stroke();g.fillText(m+' m',pl-14,y)}
+g.textAlign='center';g.textBaseline='top';for(let s=30;s<=180;s+=30){const xx=pl+s/.25*cw;g.beginPath();g.moveTo(xx,pt);g.lineTo(xx,pt+ph);g.stroke();g.fillText(s+' 秒',xx,pt+ph+14)}
+g.fillStyle='#EF6A5F';g.fillRect(pl-1,pt,3,ph);g.textAlign='left';g.fillText('ブレーキ',pl+8,pt+ph+14)}
+let c=0,t0=null,hold=0;
+function frame(ts){if(t0===null){t0=ts;axes()}const target=Math.min(smp.length,Math.floor((ts-t0)/1000*80));
+for(;c<target;c++){const sm=smp[c],xx=pl+c*cw;for(let i=0;i<N;i++){g.fillStyle=col(sm.v[i]*3.6);g.fillRect(xx-1.5,pt+ph-sm.x[i]/L*ph-1.5,3,3)}}
+if(c>=smp.length){if(!hold)hold=ts;if(ts-hold>6000){c=0;t0=null;hold=0}}requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html></x-embed>
+<aside>これは時空図です。横がブレーキを踏んでからの時間、縦がコース上の位置です。1本の縦の点の並びが、その瞬間の22台の位置です。車は前へ進むので、点の列は右上へ伸びていきます。ところが赤い部分、つまり止まっている所は右下へ、後ろ向きに進んでいます。先頭では前が空いた車から発進して抜け、最後尾には後ろから車が加わるからです。このモデルでは時速23kmほどで後ろへ進みます。実際の高速道路では時速15km前後と報告されていて、モデルはやや速めです。</aside>
+</section>

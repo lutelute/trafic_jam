@@ -1,0 +1,35 @@
+<section id="ringloop" data-transition="fade" style="background:#F1F3F4;color:#1B2128;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:32px">
+<p style="font-size:24px;font-weight:700;color:#B8322A;letter-spacing:3px">制御系として見る 5</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2">円形コースはループ、吸収車はフィルタ</h2>
+<div style="position:absolute;left:128px;top:330px;width:150px;height:90px;display:flex;align-items:center;justify-content:center;background:#FBFBF9;border:3px solid #1B2128;border-radius:12px"><p style="font-family:'Times New Roman', serif;font-size:44px;font-style:italic">G</p></div>
+<div style="position:absolute;left:324px;top:330px;width:150px;height:90px;display:flex;align-items:center;justify-content:center;background:#FBFBF9;border:3px solid #1B2128;border-radius:12px"><p style="font-family:'Times New Roman', serif;font-size:44px;font-style:italic">G</p></div>
+<div style="position:absolute;left:520px;top:330px;width:150px;height:90px;display:flex;align-items:center;justify-content:center;background:#FBFBF9;border:3px solid #1B2128;border-radius:12px"><p style="font-family:'Times New Roman', serif;font-size:44px;font-style:italic">G</p></div>
+<p style="position:absolute;left:716px;top:348px;width:150px;font-size:44px;text-align:center;color:#4A5560">…</p>
+<div style="position:absolute;left:912px;top:330px;width:150px;height:90px;display:flex;align-items:center;justify-content:center;background:#DFECF2;border:3px solid #24698A;border-radius:12px"><p style="font-family:'Times New Roman', serif;font-size:40px;font-style:italic;color:#24698A">G av</p></div>
+<div style="position:absolute;left:1108px;top:330px;width:150px;height:90px;display:flex;align-items:center;justify-content:center;background:#FBFBF9;border:3px solid #1B2128;border-radius:12px"><p style="font-family:'Times New Roman', serif;font-size:44px;font-style:italic">G</p></div>
+<p style="position:absolute;left:1304px;top:348px;width:150px;font-size:44px;text-align:center;color:#4A5560">…</p>
+<div style="position:absolute;left:1500px;top:330px;width:150px;height:90px;display:flex;align-items:center;justify-content:center;background:#FBFBF9;border:3px solid #1B2128;border-radius:12px"><p style="font-family:'Times New Roman', serif;font-size:44px;font-style:italic">G</p></div>
+<x-connector x1="278" y1="375" x2="324" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="474" y1="375" x2="520" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="670" y1="375" x2="736" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="846" y1="375" x2="912" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1062" y1="375" x2="1108" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1258" y1="375" x2="1324" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1434" y1="375" x2="1500" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1650" y1="375" x2="1730" y2="375" head="none" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1730" y1="375" x2="1730" y2="470" head="none" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1730" y1="470" x2="84" y2="470" head="none" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="84" y1="470" x2="84" y2="375" head="none" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="84" y1="375" x2="128" y2="375" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<p style="position:absolute;left:620px;top:482px;width:680px;font-size:24px;text-align:center;color:#4A5560">最後の車の前に、最初の車がいる（出口が入口に戻る）</p>
+<div style="position:absolute;left:128px;top:548px;width:808px;display:flex;flex-direction:column;gap:12px;background:#FBFBF9;border:2px solid #D5DBE0;border-radius:16px;padding:32px 40px">
+<h3 style="font-size:34px;font-weight:700">円形コース＝ループ</h3>
+<p style="font-size:26px;line-height:1.6;color:#3E4852">G を N 個つないで出口を入口に戻したループ。特性方程式は G(p) の N 乗 = 1。一周のゲインが 1 を超える帯域があると、そこに合う速度のむらが周回のたびに大きくなります。</p>
+</div>
+<div style="position:absolute;left:984px;top:548px;width:808px;display:flex;flex-direction:column;gap:12px;background:#DFECF2;border-radius:16px;padding:32px 40px">
+<h3 style="font-size:34px;font-weight:700;color:#1B2128">吸収車＝ローパスフィルタ</h3>
+<p style="font-family:'Times New Roman', serif;font-size:32px;font-style:italic;color:#1B2128">G av(p) = 0.4 / ((20p + 1)(p + 0.4))</p>
+<p style="font-size:26px;line-height:1.6;color:#3E4852">前の車の速度を20秒かけて平均し、ゆっくり合わせる。周期7秒でのゲインは 0.02 で、残り21台の増幅 3.5 倍を打ち消して余ります。</p>
+</div>
+<aside>円形コースでは最後の車の前に最初の車がいるので、G を22個つないで出口を入口に戻したフィードバックループになります。一周のゲインが1を超える帯域があると、その速度のむらは周回のたびに育つ。さっきの棒グラフで2周目、3周目と深くなったのはこれです。渋滞吸収車は、このループにローパスフィルタを1個入れることにあたります。前の車の速度を20秒かけて平均し、それにゆっくり合わせる。周期7秒でのゲインは0.02しかないので、残り21台ぶんの増幅3.5倍をかけても0.07。一周のゲインが1を下回るので波は育ちません。Stern らの2018年の実験では、20台あまりの円形コースで、1台の自動運転車の速度制御だけで停止と発進の波が消えています。</aside>
+</section>

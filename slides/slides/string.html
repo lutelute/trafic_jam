@@ -1,0 +1,29 @@
+<section id="string" data-transition="fade" style="background:#F1F3F4;color:#1B2128;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:32px">
+<p style="font-size:24px;font-weight:700;color:#B8322A;letter-spacing:3px">制御系として見る 2</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2">1台は安定、列は不安定</h2>
+<div style="display:flex;gap:56px;align-items:center">
+<div style="display:flex;gap:20px;align-items:center">
+<p style="font-family:'Times New Roman', serif;font-size:52px;font-style:italic">G(p) =</p>
+<div style="display:flex;flex-direction:column;align-items:center">
+<p style="font-family:'Times New Roman', serif;font-size:48px;font-style:italic;padding:0 16px 6px 16px">λp + aV′</p>
+<p style="font-family:'Times New Roman', serif;font-size:48px;font-style:italic;border-top:3px solid #1B2128;padding:6px 16px 0 16px">p² + (a + λ)p + aV′</p>
+</div>
+</div>
+<p style="flex:1;font-size:26px;line-height:1.6;color:#4A5560">前の車の速度から自分の速度への伝達関数。全員が同じ車間で走る状態のまわりで線形化しました。<i>V</i>′ は S 字の傾き、<i>p</i> はラプラス変数です。</p>
+</div>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#DFECF2;border-radius:16px;padding:36px 40px">
+<h3 style="font-size:34px;font-weight:700">1台ずつは、必ず安定</h3>
+<p style="font-size:28px;line-height:1.6;color:#3E4852">極は p² + (a+λ)p + aV′ = 0 の根。a, λ, V′ が正なら左半平面にあります。どの1台も、前の車に追従できます。</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#F6DCD2;border-radius:16px;padding:36px 40px">
+<h3 style="font-size:34px;font-weight:700">つなぐと、不安定になりうる</h3>
+<p style="font-size:28px;line-height:1.6;color:#3E4852">n 台後ろの速度は G(p) を n 回かけたもの。|G(jω)| が 1 を超える周波数があると、その成分は後ろへ行くたびに大きくなります。</p>
+</div>
+</div>
+<div style="display:flex;gap:40px;align-items:center;background:#1B2128;border-radius:14px;padding:24px 40px">
+<p style="font-size:30px;font-weight:700;color:#EF6A5F;white-space:nowrap">列安定性の条件</p>
+<p style="font-family:'Times New Roman', serif;font-size:40px;font-style:italic;color:#F1F3F4">|G(jω)| ≤ 1 （すべての ω）　⇔　V′ ≤ a/2 + λ</p>
+</div>
+<aside>線形化すると、前の車の速度から自分の速度への伝達関数はこの2次系になります。分母の極は、a, λ, V′ が正なら必ず左半平面にあります。つまり1台ずつ見れば、どの運転者も前の車にちゃんと追従できる、安定な制御系です。ところが、この G を直列に何十個もつなぐと話が変わります。ある周波数で G のゲインが1を超えていれば、その成分は後ろへ行くたびに大きくなる。これを列安定性、string stability と呼びます。ゲインの式を計算すると、条件は V′ が a/2 + λ 以下、というきれいな形になります。22台・a=1.5 では V′ = 1.74、a/2+λ = 1.15 なので条件を破っています。</aside>
+</section>

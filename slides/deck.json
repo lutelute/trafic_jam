@@ -1,0 +1,22 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-10-14T18:50:00Z" },
+  "lists": "css",
+  "title": "自然渋滞はなぜ起きるのか",
+  "cover": "cover",
+  "order": ["cover", "question", "exp2008", "demo", "amplify", "backward", "scope", "equations", "vcurve", "block", "string", "compound", "bode", "ringloop", "sagintro", "sagmodel", "sagqueue", "remedies", "summary", "refs"],
+  "sections": {
+    "intro": { "description": "問い：事故も合流もないのに起きる渋滞と、2008年の円形コース実験", "start": "cover" },
+    "mech": { "description": "しくみ：ブレーキは後ろへ強まって伝わり、渋滞は後ろへ進む", "start": "demo" },
+    "model": { "description": "モデル化：何を残し何を捨て、車と運転者をどう式にしたか", "start": "scope" },
+    "control": { "description": "制御系として見る：伝達関数、列安定性、ループと吸収車", "start": "block" },
+    "sag": { "description": "サグ部：外乱と目標の変化、先頭が居座る渋滞", "start": "sagintro" },
+    "close": { "description": "対策とまとめ", "start": "remedies" }
+  },
+  "faces": {
+    "dela-gothic-one": { "family": "Dela Gothic One", "href": "https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" },
+    "biz-udpgothic": { "family": "BIZ UDPGothic", "href": "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" },
+    "overpass": { "family": "Overpass", "href": "https://fonts.googleapis.com/css2?family=Overpass:wght@700;800&display=swap" }
+  },
+  "designSystems": []
+}

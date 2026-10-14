@@ -1,0 +1,14 @@
+<section id="remedies" data-transition="fade" style="background:#F1F3F4;color:#1B2128;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;font-weight:700;color:#B8322A;letter-spacing:3px">対策</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2">対策を制御の言葉で</h2>
+<table style="font-size:28px;color:#1B2128">
+<tr style="background:#1B2128"><th style="width:30%;color:#F1F3F4">対策</th><th style="width:42%;color:#F1F3F4">制御で言うと</th><th style="width:28%;color:#F1F3F4">効くところ</th></tr>
+<tr style="background:#FBFBF9"><td>車間を空ける</td><td>動作点を V(s) の傾きがゆるい所へ移す</td><td>V′ を下げる</td></tr>
+<tr style="background:#F1F3F4"><td>渋滞吸収運転・吸収車</td><td>増幅帯域のゲインを下げるフィルタ</td><td>|G(jω)|</td></tr>
+<tr style="background:#FBFBF9"><td>速度回復の呼びかけ</td><td>運転者へのフィードフォワード</td><td>κ を上げ、Δs を下げる</td></tr>
+<tr style="background:#F1F3F4"><td>ACC（車間を時間で保つ）</td><td>坂でも目標を変えない＋積分動作</td><td>Δs と定常偏差</td></tr>
+<tr style="background:#FBFBF9"><td>可変速度制限</td><td>流入量を操作量にした制御</td><td>来る量 ≤ 通れる量</td></tr>
+</table>
+<p style="font-size:28px;line-height:1.6;color:#3E4852">上の2つは円形コースの不安定（列安定性）に、下の3つはサグの渋滞（外乱・目標・容量）に効きます。</p>
+<aside>対策を制御の言葉で整理するとこうなります。車間を空けるのは、動作点を V(s) の傾きがゆるい所へ移すこと。吸収運転は、増幅される帯域のゲインを下げるフィルタ。サグの速度回復の看板やナビの音声は、運転者へのフィードフォワードです。ACC は、坂でも目標の車頭時間を変えず、積分動作があれば勾配の外乱による定常偏差も残しません。可変速度制限は、流入量を操作量にして、来る量を上り坂で通れる量以下に保つ制御です。</aside>
+</section>

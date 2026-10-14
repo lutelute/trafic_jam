@@ -1,0 +1,36 @@
+<section id="block" data-transition="fade" style="background:#F1F3F4;color:#1B2128;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;font-weight:700;color:#B8322A;letter-spacing:3px">制御系として見る 1</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2">1台ぶんのブロック線図</h2>
+<p style="position:absolute;left:128px;top:470px;width:250px;font-size:28px;line-height:1.3;text-align:right;color:#1B2128">前の車の<br>速度 v前</p>
+<div style="position:absolute;left:400px;top:420px;width:280px;display:flex;flex-direction:column;gap:8px;background:#FBFBF9;border:3px solid #1B2128;border-radius:12px;padding:24px">
+<h3 style="font-size:30px;font-weight:700">車間の変化</h3>
+<p style="font-family:'Times New Roman', serif;font-size:30px;font-style:italic">s = ∫ (v前 − v) dt</p>
+<p style="font-size:24px;color:#4A5560">運動学</p>
+</div>
+<div style="position:absolute;left:760px;top:420px;width:460px;display:flex;flex-direction:column;gap:8px;background:#F6DCD2;border:3px solid #B8322A;border-radius:12px;padding:24px">
+<h3 style="font-size:30px;font-weight:700">運転者（制御器）</h3>
+<p style="font-family:'Times New Roman', serif;font-size:30px;font-style:italic">u = a [ V(s) − v ] + λ ṡ</p>
+<p style="font-size:24px;color:#4A5560">速度の P 制御 ＋ 車間の D 動作</p>
+</div>
+<div style="position:absolute;left:1300px;top:420px;width:280px;display:flex;flex-direction:column;gap:8px;background:#DFECF2;border:3px solid #24698A;border-radius:12px;padding:24px">
+<h3 style="font-size:30px;font-weight:700">車（制御対象）</h3>
+<p style="font-family:'Times New Roman', serif;font-size:30px;font-style:italic">dv/dt = u + d</p>
+<p style="font-size:24px;color:#4A5560">積分器</p>
+</div>
+<p style="position:absolute;left:1662px;top:470px;width:130px;font-size:28px;line-height:1.3;color:#1B2128">自分の<br>速度 v</p>
+<x-connector x1="384" y1="506" x2="400" y2="506" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="680" y1="506" x2="760" y2="506" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1220" y1="506" x2="1300" y2="506" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1580" y1="506" x2="1656" y2="506" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<p style="position:absolute;left:686px;top:452px;width:70px;font-family:'Times New Roman', serif;font-size:28px;font-style:italic;text-align:center">s, ṡ</p>
+<p style="position:absolute;left:1240px;top:452px;width:40px;font-family:'Times New Roman', serif;font-size:28px;font-style:italic;text-align:center">u</p>
+<x-connector x1="1440" y1="350" x2="1440" y2="418" head="end" style="color:#B8322A;border-width:3px"></x-connector>
+<p style="position:absolute;left:1460px;top:332px;width:300px;font-size:26px;font-weight:700;color:#B8322A">坂の外乱 d</p>
+<x-connector x1="1618" y1="506" x2="1618" y2="700" head="none" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="1618" y1="700" x2="540" y2="700" head="none" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="540" y1="700" x2="540" y2="600" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<x-connector x1="990" y1="700" x2="990" y2="600" head="end" style="color:#1B2128;border-width:3px"></x-connector>
+<p style="position:absolute;left:1030px;top:712px;width:560px;font-size:24px;color:#4A5560">自分の速度 v も、運転者と車間の計算に戻る</p>
+<p style="position:absolute;left:128px;top:796px;width:1664px;font-size:32px;line-height:1.6;font-weight:700;color:#1B2128">自分の速度 v は、後ろの車にとっての「前の車の速度」。同じブロックが台数ぶん直列につながります。</p>
+<aside>1台ぶんをブロック線図にするとこうなります。左から、前の車の速度が入ってきます。自分の速度との差を積分すると車間になります。運転者は車間 s から目標速度 V(s) を作り、自分の速度との差に a をかけ、車間の変化率に λ をかける。これが加速度 u で、車は坂の外乱 d を足して積分し、自分の速度 v になります。そして、この v は後ろの車にとっての入力です。同じブロックが台数ぶんつながっているのが車列です。</aside>
+</section>

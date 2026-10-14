@@ -1,0 +1,1913 @@
+<meta charset="utf-8">
+<title>自然渋滞の実験室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Dela+Gothic+One&family=Overpass:wght@500;700;800&family=Overpass+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: two lab benches (ring, sag road), each with its space-time strip; then a reading column on modelling and control */
+:root {
+  --bg: #eef1f3;
+  --surface: #ffffff;
+  --fg: #1c222a;
+  --muted: #5a6571;
+  --line: #d3d9df;
+  --asphalt: #3b414a;
+  --paint: #f5f7f9;
+  --terrain: #d5ddd0;
+  --brake: #d93a32;
+  --brake-deep: #9f241e;
+  --on-brake: #ffffff;
+  --plot-bg: #1e232a;
+  --plot-fg: #c8d0d8;
+  --plot-grid: #343b45;
+  --plot-band: rgba(255, 255, 255, .07);
+  --grow: #f7ddd0;
+  --grow-line: #c4471c;
+  --grow-ink: #8f3010;
+  --fade: #e0eee6;
+  --fade-ink: #23633f;
+  --seq1: #b8860b;
+  --seq2: #d9661c;
+  --seq3: #c23a1a;
+  --seq4: #8a1a12;
+  --focus: #2f6fd6;
+  --font-display: "Dela Gothic One", "BIZ UDPGothic", "Hiragino Sans", sans-serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  --font-num: "Overpass", "BIZ UDPGothic", system-ui, sans-serif;
+  --font-mono: "Overpass Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101419; --surface: #181d24; --fg: #e4e8ec; --muted: #97a2ae; --line: #2a3139;
+    --asphalt: #2d333c; --paint: #dfe4e9; --terrain: #232b24;
+    --brake: #e8473d; --brake-deep: #8e221c; --on-brake: #ffffff;
+    --plot-bg: #0a0d11; --plot-fg: #b9c3cd; --plot-grid: #232a33; --plot-band: rgba(255, 255, 255, .06);
+    --grow: #3a231c; --grow-line: #ff7b4a; --grow-ink: #ffb592; --fade: #142519; --fade-ink: #7fd3a2;
+    --seq1: #e8c35a; --seq2: #f4934a; --seq3: #ff6b45; --seq4: #ff3b30;
+    --focus: #7aa7ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101419; --surface: #181d24; --fg: #e4e8ec; --muted: #97a2ae; --line: #2a3139;
+  --asphalt: #2d333c; --paint: #dfe4e9; --terrain: #232b24;
+  --brake: #e8473d; --brake-deep: #8e221c; --on-brake: #ffffff;
+  --plot-bg: #0a0d11; --plot-fg: #b9c3cd; --plot-grid: #232a33; --plot-band: rgba(255, 255, 255, .06);
+  --grow: #3a231c; --grow-line: #ff7b4a; --grow-ink: #ffb592; --fade: #142519; --fade-ink: #7fd3a2;
+  --seq1: #e8c35a; --seq2: #f4934a; --seq3: #ff6b45; --seq4: #ff3b30;
+    --focus: #7aa7ff; color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.8;
+}
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 72px;
+  display: grid;
+  gap: 48px;
+}
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- masthead ---------- */
+.masthead { display: grid; gap: 12px; max-width: 48rem; }
+.eyebrow { font-size: .82rem; letter-spacing: .1em; color: var(--muted); }
+.eyebrow b { font-family: var(--font-num); font-weight: 700; letter-spacing: .04em; color: var(--fg); }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.2;
+  letter-spacing: .02em;
+}
+.lead { font-size: 1.05rem; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.55rem; line-height: 1.35; letter-spacing: .03em; }
+
+.exp-head { display: grid; gap: 8px; max-width: 48rem; }
+.exp-tag {
+  justify-self: start;
+  font-family: var(--font-num); font-weight: 800; font-size: .78rem; letter-spacing: .14em;
+  padding: 2px 10px; border-radius: 4px; background: var(--fg); color: var(--bg);
+}
+.exp-head p { color: var(--muted); }
+.experiment { display: grid; gap: 28px; }
+
+/* ---------- ring bench ---------- */
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.ring-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  container-type: inline-size;
+}
+#ring { display: block; width: 100%; height: 100%; cursor: pointer; touch-action: manipulation; }
+.hub {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; justify-items: center;
+  gap: .4cqi;
+  text-align: center;
+  pointer-events: none;
+}
+.hub-speed {
+  font-family: var(--font-num); font-weight: 800;
+  font-size: 15cqi; line-height: .95;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+.hub-unit { font-size: 3.1cqi; color: var(--muted); letter-spacing: .06em; }
+.hub-row { font-size: 3.3cqi; line-height: 1.5; }
+.hub-row b { font-family: var(--font-num); font-weight: 800; font-size: 4.6cqi; font-variant-numeric: tabular-nums; }
+.hub-row.jam { color: var(--grow-ink); }
+.hub-row.jam[data-on="false"] { color: var(--muted); }
+.ring-note { margin-top: 6px; font-size: .82rem; color: var(--muted); text-align: center; }
+
+.controls {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  display: grid;
+  gap: 22px;
+}
+.brake {
+  display: grid; gap: 2px; justify-items: center;
+  width: 100%;
+  padding: 18px 16px 14px;
+  border: 0; border-radius: 14px;
+  background-color: var(--brake);
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.09) 0 2px, transparent 2px 10px);
+  color: var(--on-brake);
+  box-shadow: 0 6px 0 var(--brake-deep);
+  font-family: var(--font-display); font-size: 2rem; line-height: 1.2; letter-spacing: .12em;
+  cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none;
+  transition: transform .06s, box-shadow .06s;
+}
+.brake small { font-family: var(--font-body); font-size: .8rem; letter-spacing: .04em; font-weight: 400; }
+.brake[aria-pressed="true"] { transform: translateY(5px); box-shadow: 0 1px 0 var(--brake-deep); }
+
+.status {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 14px; border-radius: 10px;
+  font-size: .92rem; line-height: 1.6;
+}
+.status[data-kind="grow"] { background: var(--grow); color: var(--grow-ink); }
+.status[data-kind="fade"] { background: var(--fade); color: var(--fade-ink); }
+.status-dot { flex: none; width: 10px; height: 10px; margin-top: .45em; border-radius: 50%; background: currentColor; }
+
+.field { display: grid; gap: 6px; min-width: 0; }
+.field-head { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
+.field label { font-weight: 700; }
+.field output { font-family: var(--font-mono); font-size: .88rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+.field input[type="range"] { width: 100%; accent-color: var(--fg); margin: 0; }
+.scale-ends { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); }
+
+.toggles { display: grid; gap: 12px; }
+.toggle { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: start; cursor: pointer; }
+.toggle input { width: 18px; height: 18px; margin: .3em 0 0; accent-color: var(--fg); }
+.toggle span { font-weight: 700; }
+.toggle small { grid-column: 2; font-size: .82rem; color: var(--muted); line-height: 1.55; }
+
+.transport { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  font: inherit; font-size: .92rem; font-weight: 700;
+  padding: 8px 14px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { padding: 8px 12px; font-family: var(--font-num); font-weight: 700; font-size: .9rem; cursor: pointer; color: var(--muted); }
+.seg input:checked + label { background: var(--fg); color: var(--bg); }
+.seg input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: -3px; }
+.clock { margin-left: auto; font-family: var(--font-mono); font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.legend { display: grid; gap: 4px; }
+.legend-title { font-size: .8rem; color: var(--muted); }
+.legend-bar { height: 10px; border-radius: 5px; }
+.legend-ticks { display: flex; justify-content: space-between; font-family: var(--font-num); font-size: .76rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- try it ---------- */
+.tryit { display: grid; gap: 12px; }
+.tryit h3 { font-size: 1.05rem; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: grid; gap: 4px; align-content: start;
+  padding: 14px 16px; border-top: 3px solid var(--fg);
+  background: var(--surface);
+  font-size: .92rem; line-height: 1.65;
+}
+.steps li::before { content: counter(step); font-family: var(--font-num); font-weight: 800; font-size: 1.3rem; line-height: 1; }
+.steps b { font-size: .98rem; }
+
+/* ---------- space-time ---------- */
+.st { display: grid; gap: 10px; }
+.st h3 { font-size: 1.05rem; }
+.st p { color: var(--muted); font-size: .95rem; max-width: 48rem; }
+.st-plot { position: relative; height: clamp(230px, 30vw, 330px); background: var(--plot-bg); border-radius: 12px; overflow: hidden; }
+.st-plot canvas { display: block; width: 100%; height: 100%; }
+
+/* ---------- paired charts ---------- */
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.card {
+  margin: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px 18px 16px;
+  display: grid; gap: 10px; align-content: start;
+}
+.card h3 { font-size: 1.05rem; }
+.card .sub { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+.card svg { width: 100%; height: auto; display: block; overflow: visible; }
+.card figcaption { font-size: .9rem; line-height: 1.65; }
+#map { cursor: crosshair; }
+
+/* ---------- sag road bench ---------- */
+.road-bench { display: grid; gap: 16px; }
+.road-plot { position: relative; height: clamp(170px, 21vw, 240px); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+#road { display: block; width: 100%; height: 100%; }
+.road-panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px 20px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px; align-items: start;
+}
+.road-panel .transport { grid-column: 1 / -1; }
+.chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.chip { display: grid; gap: 2px; padding: 10px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.chip span { font-size: .78rem; color: var(--muted); line-height: 1.4; }
+.chip b { font-family: var(--font-num); font-weight: 800; font-size: 1.45rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.chip b small { font-size: .8rem; font-weight: 700; color: var(--muted); margin-left: 2px; }
+.chip[data-alert="true"] { background: var(--grow); border-color: transparent; }
+.chip[data-alert="true"] b, .chip[data-alert="true"] span { color: var(--grow-ink); }
+
+/* ---------- chart text ---------- */
+.ax { stroke: var(--line); stroke-width: 1; }
+.ax-text { fill: var(--muted); font-family: var(--font-num); font-size: 11px; }
+.ax-jp { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
+.ref-line { stroke: var(--fg); stroke-width: 1; stroke-dasharray: 4 3; opacity: .55; }
+.ref-text { fill: var(--fg); font-family: var(--font-body); font-size: 11px; opacity: .85; }
+.lap-line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.empty-text { fill: var(--muted); font-family: var(--font-body); font-size: 13px; }
+.grow-area { fill: var(--grow); }
+.grow-edge { stroke: var(--grow-line); stroke-width: 2; fill: none; }
+.region-grow { fill: var(--grow-ink); font-family: var(--font-body); font-size: 13px; font-weight: 700; }
+.region-fade { fill: var(--fade-ink); font-family: var(--font-body); font-size: 13px; font-weight: 700; }
+.mark-ring { fill: var(--surface); stroke: var(--fg); stroke-width: 2.5; }
+.mark-dot { fill: var(--fg); }
+.exp-line { stroke: var(--fg); stroke-width: 1; stroke-dasharray: 3 3; opacity: .45; }
+.curve { stroke: var(--fg); stroke-width: 2.2; fill: none; }
+.curve-n { stroke: var(--grow-line); stroke-width: 2.6; fill: none; }
+.curve-av { stroke: var(--fade-ink); stroke-width: 2.2; fill: none; stroke-dasharray: 6 4; }
+.tangent { stroke: var(--grow-line); stroke-width: 2; stroke-dasharray: 6 4; fill: none; }
+.band { fill: var(--grow); opacity: .55; }
+
+/* block diagram */
+.bd-box { fill: var(--surface); stroke: var(--fg); stroke-width: 1.4; }
+.bd-sum { fill: var(--surface); stroke: var(--fg); stroke-width: 1.4; }
+.bd-wire { stroke: var(--fg); stroke-width: 1.4; fill: none; }
+.bd-head { fill: var(--fg); }
+.bd-dot { fill: var(--fg); }
+.bd-text { fill: var(--fg); font-family: "Times New Roman", serif; font-size: 15px; font-style: italic; }
+.bd-up { fill: var(--fg); font-family: "Times New Roman", serif; font-size: 15px; }
+.bd-sign { fill: var(--fg); font-family: var(--font-num); font-size: 12px; font-weight: 700; }
+.bd-small { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
+.bd-group { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }
+.bd-group-label { fill: var(--muted); font-family: var(--font-body); font-size: 11.5px; font-weight: 700; }
+.bd-dist { stroke: var(--grow-line); stroke-width: 1.4; fill: none; }
+.bd-dist-head { fill: var(--grow-line); }
+.bd-dist-text { fill: var(--grow-ink); font-family: var(--font-body); font-size: 11.5px; font-weight: 700; }
+
+/* ---------- explanation ---------- */
+.explain { display: grid; gap: 18px; max-width: 46rem; }
+.explain h2 { margin-top: 26px; }
+.explain h2:first-child { margin-top: 0; }
+.explain h3 { font-size: 1.12rem; margin-top: 14px; }
+.explain p { font-size: 1rem; }
+.explain i, .exp-head i { font-family: "Times New Roman", "Hiragino Mincho ProN", serif; font-size: 1.08em; }
+.eq {
+  font-family: "Times New Roman", "Hiragino Mincho ProN", serif;
+  font-size: 1.2rem; line-height: 1.6;
+  padding: 14px 18px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  overflow-x: auto; white-space: nowrap;
+}
+.eq.center { text-align: center; }
+.frac { display: inline-grid; vertical-align: middle; text-align: center; margin: 0 .2em; }
+.frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 .3em; }
+.frac > span { line-height: 1.35; }
+.live {
+  font-family: var(--font-mono); font-size: .9em; font-variant-numeric: tabular-nums;
+  padding: 1px 6px; border-radius: 5px; background: var(--surface); border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.vfig, .bfig, .diagram { margin: 0; display: grid; gap: 6px; }
+.vfig svg { width: 100%; max-width: 520px; height: auto; display: block; overflow: visible; }
+.bfig svg { width: 100%; max-width: 560px; height: auto; display: block; overflow: visible; }
+.diagram-scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px; }
+.diagram-scroll svg { display: block; width: 100%; min-width: 620px; height: auto; }
+.vfig figcaption, .bfig figcaption, .diagram figcaption { font-size: .86rem; color: var(--muted); }
+.model-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 12px; }
+.model-steps li::marker { font-family: var(--font-num); font-weight: 800; }
+.explain ul { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.table-scroll { overflow-x: auto; }
+.params { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 460px; }
+.params th, .params td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.params th { font-size: .8rem; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
+.params td:first-child { font-family: "Times New Roman", serif; font-style: italic; font-size: 1.05rem; white-space: nowrap; }
+.params td:last-child { font-family: var(--font-mono); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.note { font-size: .88rem; color: var(--muted); border-left: 3px solid var(--line); padding-left: 12px; }
+.refs { font-size: .86rem; line-height: 1.6; color: var(--muted); }
+.refs a { color: var(--fg); word-break: break-all; }
+
+/* ---------- quick guide, contents, plain-language aids ---------- */
+.quick {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 20px 22px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px 32px; align-items: center;
+}
+.quick-text { display: grid; gap: 12px; min-width: 0; }
+.quick h2 { font-size: 1.3rem; }
+.quick ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: q; }
+.quick li { counter-increment: q; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; line-height: 1.7; }
+.quick li::before {
+  content: counter(q);
+  width: 1.6em; height: 1.6em; display: grid; place-items: center; margin-top: .1em;
+  border-radius: 50%; background: var(--fg); color: var(--bg);
+  font-family: var(--font-num); font-weight: 800; font-size: .95rem; line-height: 1;
+}
+.quick-note { font-size: .86rem; color: var(--muted); }
+.quick svg { width: 100%; height: auto; display: block; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toc-label { font-size: .8rem; color: var(--muted); letter-spacing: .08em; margin-right: 4px; }
+.toc a {
+  font-size: .9rem; font-weight: 700; color: var(--fg); text-decoration: none;
+  padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
+}
+.toc a:hover { border-color: var(--muted); }
+.gist { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.gist-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em; white-space: nowrap;
+  padding: 2px 8px; border-radius: 4px; background: var(--fg); color: var(--bg);
+}
+.gist b { font-size: 1.02rem; line-height: 1.75; }
+.term { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.term:hover { text-decoration-style: solid; }
+.ill-car { fill: var(--asphalt); }
+.ill-road { stroke: var(--line); stroke-width: 2; }
+.ill-light { fill: var(--brake); }
+.ill-bar { fill: var(--grow-line); }
+.ill-text { fill: var(--fg); font-family: var(--font-body); font-size: 12px; font-weight: 700; }
+.ill-sub { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
+.ill-arrow { stroke: var(--fg); stroke-width: 1.6; fill: none; }
+.ill-head { fill: var(--fg); }
+.dipfig, .flowfig { margin: 0; display: grid; gap: 8px; }
+.dipfig svg, .flowfig svg { width: 100%; max-width: 560px; height: auto; display: block; overflow: visible; }
+.dipfig figcaption, .flowfig figcaption { font-size: .86rem; color: var(--muted); }
+.ln { fill: none; stroke-width: 2.2; }
+.ln0 { stroke: var(--fg); } .ln1 { stroke: var(--seq1); } .ln2 { stroke: var(--seq2); } .ln3 { stroke: var(--seq3); } .ln4 { stroke: var(--seq4); }
+.dm { fill: var(--surface); stroke-width: 2; }
+.keys { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 0; list-style: none; font-size: .84rem; }
+.keys li { display: flex; align-items: center; gap: 6px; }
+.sw { width: 18px; height: 3px; border-radius: 2px; display: inline-block; flex: none; }
+.sw0 { background: var(--fg); } .sw1 { background: var(--seq1); } .sw2 { background: var(--seq2); } .sw3 { background: var(--seq3); } .sw4 { background: var(--seq4); }
+.flow-in { fill: var(--fg); opacity: .78; }
+.flow-cap { fill: var(--fade-ink); }
+.flow-over { fill: var(--grow-line); }
+.flow-val { fill: var(--fg); font-family: var(--font-num); font-size: 12px; font-weight: 700; }
+.glossary { margin: 0; display: grid; }
+.glossary div { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.glossary div:target { background: var(--fade); }
+.glossary dt { font-weight: 700; }
+.glossary dd { margin: 0; font-size: .95rem; line-height: 1.7; }
+@media (max-width: 760px) {
+  .quick { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .glossary div { grid-template-columns: 1fr; }
+}
+@media (max-width: 960px) {
+  .road-panel { grid-template-columns: 1fr 1fr; }
+  .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .lab { grid-template-columns: 1fr; }
+  .pair { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .road-panel { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brake { transition: none; }
+}
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">交通流のモデルと制御 ・ 実験1 円形コース <b>230 m</b> ・ 実験2 サグ部のある道路 <b>3 km</b></p>
+    <h1>自然渋滞の実験室</h1>
+    <p class="lead">事故も工事も合流もないのに起きる渋滞を、運転者を「制御器」とみなした数式モデルで動かします。実験1は2008年の円形コース実験と同じ周長と台数、実験2は日本の高速道路で渋滞の先頭になりやすいサグ部（下り坂から上り坂に変わる凹部）です。後半では、モデルの立て方と、制御工学から見た不安定のしくみを説明します。</p>
+  </header>
+
+  <section class="quick" aria-labelledby="quick-h">
+    <div class="quick-text">
+      <h2 id="quick-h">30秒でわかる自然渋滞</h2>
+      <ol>
+        <li>前の車が減速すると、後ろの車は少し遅れて、ほんの少し強めに減速しがちです。</li>
+        <li>その「少し」が後ろの車へ次々に積み重なると、どこかで止まる車が出ます。</li>
+        <li>止まる場所は少しずつ後ろへ移るので、渋滞の先頭へ行っても原因は見当たりません。</li>
+      </ol>
+      <p class="quick-note">下の実験1で、自分でブレーキを踏んで確かめられます。図はしくみのイメージです。</p>
+    </div>
+    <svg viewBox="0 0 440 200" role="img" aria-label="5台の車。前の車は軽く減速するだけだが、後ろの車ほど減速が深くなり、いちばん後ろは止まる。止まる場所は後ろへ移る。">
+          <defs><marker id="qarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ill-head" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+          <text class="ill-sub" x="432" y="16" text-anchor="end">進む向き →</text>
+          <line class="ill-road" x1="8" y1="64" x2="432" y2="64"/>
+          <rect class="ill-car" x="334" y="40" width="52" height="20" rx="5"/>
+          <rect class="ill-light" x="332" y="43" width="4" height="5" rx="1"/><rect class="ill-light" x="332" y="52" width="4" height="5" rx="1"/>
+          <rect class="ill-bar" x="350" y="74" width="20" height="10" rx="2" opacity="0.45"/>
+          <rect class="ill-car" x="258" y="40" width="52" height="20" rx="5"/>
+          <rect class="ill-light" x="256" y="43" width="4" height="5" rx="1"/><rect class="ill-light" x="256" y="52" width="4" height="5" rx="1"/>
+          <rect class="ill-bar" x="274" y="74" width="20" height="19" rx="2" opacity="0.59"/>
+          <rect class="ill-car" x="182" y="40" width="52" height="20" rx="5"/>
+          <rect class="ill-light" x="180" y="43" width="4" height="5" rx="1"/><rect class="ill-light" x="180" y="52" width="4" height="5" rx="1"/>
+          <rect class="ill-bar" x="198" y="74" width="20" height="30" rx="2" opacity="0.73"/>
+          <rect class="ill-car" x="106" y="40" width="52" height="20" rx="5"/>
+          <rect class="ill-light" x="104" y="43" width="4" height="5" rx="1"/><rect class="ill-light" x="104" y="52" width="4" height="5" rx="1"/>
+          <rect class="ill-bar" x="122" y="74" width="20" height="43" rx="2" opacity="0.86"/>
+          <rect class="ill-car" x="30" y="40" width="52" height="20" rx="5"/>
+          <rect class="ill-light" x="28" y="43" width="4" height="5" rx="1"/><rect class="ill-light" x="28" y="52" width="4" height="5" rx="1"/>
+          <rect class="ill-bar" x="46" y="74" width="20" height="58" rx="2" opacity="1.00"/>
+          <text class="ill-text" x="360" y="34" text-anchor="middle">軽く減速</text>
+          <text class="ill-text" x="56" y="34" text-anchor="middle">止まる</text>
+          <text class="ill-sub" x="382" y="84">減速の深さ</text>
+          <text class="ill-text" x="220" y="168" text-anchor="middle">止まる場所は後ろへ移る</text>
+          <line class="ill-arrow" x1="400" y1="184" x2="30" y2="184" marker-end="url(#qarr)"/>
+        </svg>
+  </section>
+
+  <nav class="toc" aria-label="目次">
+    <span class="toc-label">目次</span>
+    <a href="#exp1">実験1</a><a href="#exp2">実験2</a><a href="#why-h">しくみ</a><a href="#model-h">モデル化</a><a href="#ctrl-h">制御</a><a href="#sag-h">サグ部</a><a href="#fix-h">対策</a><a href="#glossary-h">用語集</a>
+  </nav>
+
+  <!-- ================= Experiment 1 ================= -->
+  <section class="experiment" aria-labelledby="exp1-h" id="exp1">
+    <div class="exp-head">
+      <span class="exp-tag">実験 1</span>
+      <h2 id="exp1-h">円形コース：ブレーキ1回で渋滞</h2>
+      <p>坂も合流もない1周230mのコースを、22台が時速30kmでそろって走っています。1台が軽くブレーキを踏むと、そのゆれは後ろの車へ強まりながら伝わり、やがて止まる車が出ます。</p>
+    </div>
+
+    <div class="lab">
+      <div>
+        <div class="ring-wrap">
+          <canvas id="ring" aria-label="円形コースを走る車。色は速度、赤い光はブレーキランプ。車をクリックすると、その車があなたの車になります。"></canvas>
+          <div class="hub">
+            <div class="hub-speed" id="hubSpeed">30.0</div>
+            <div class="hub-unit">km/h ・ 平均速度</div>
+            <div class="hub-row">止まっている車 <b id="hubStopped">0</b> 台</div>
+            <div class="hub-row jam" id="hubJam" data-on="false">渋滞の動き —</div>
+          </div>
+        </div>
+        <p class="ring-note">反時計回りに走ります。車をクリックすると「あなた」の車を選べます。</p>
+      </div>
+
+      <div class="controls">
+        <button type="button" class="brake" id="brake" aria-pressed="false">ブレーキ<small>押している間ふむ ・ 1回押すと約1.5秒 ・ Bキーでも</small></button>
+
+        <div class="status" id="status" data-kind="grow" role="status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="statusText">育つ設定です。小さなブレーキが渋滞になります。</span>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="cars">台数</label>
+            <output id="carsOut" for="cars">22 台 ・ 車間 6.5 m</output>
+          </div>
+          <input type="range" id="cars" min="10" max="36" step="1" value="22">
+          <div class="scale-ends"><span>すいている</span><span>混んでいる</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="sens">ドライバーの反応</label>
+            <output id="sensOut" for="sens">a = 1.5 /s</output>
+          </div>
+          <input type="range" id="sens" min="0.5" max="3.5" step="0.1" value="1.5">
+          <div class="scale-ends"><span>のんびり</span><span>きびきび</span></div>
+        </div>
+
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="noise"><span>運転のゆらぎ</span><small>アクセルの踏み方が少しずつぶれる。誰もブレーキを踏まなくても渋滞が生まれるか試せます。</small></label>
+          <label class="toggle"><input type="checkbox" id="absorber"><span>渋滞吸収車を1台入れる</span><small>前の車の減速にぴったり付き合わず、平均の速度でなめらかに走る車です。</small></label>
+        </div>
+
+        <div class="transport">
+          <button type="button" class="btn" id="play">一時停止</button>
+          <button type="button" class="btn" id="reset">リセット</button>
+          <div class="seg" role="radiogroup" aria-label="実験1の再生の速さ">
+            <input type="radio" name="spd" id="spd1" value="1"><label for="spd1">1×</label>
+            <input type="radio" name="spd" id="spd2" value="2" checked><label for="spd2">2×</label>
+            <input type="radio" name="spd" id="spd4" value="4"><label for="spd4">4×</label>
+          </div>
+          <span class="clock" id="clock">0:00</span>
+        </div>
+
+        <div class="legend" aria-hidden="true">
+          <span class="legend-title">車の色 ＝ 速度（実験1・2共通）</span>
+          <div class="legend-bar" id="legendBar"></div>
+          <div class="legend-ticks"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>48 km/h</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tryit">
+      <h3>試し方</h3>
+      <ol class="steps">
+        <li><b>ブレーキを1回押す</b>22台のまま押すと、30秒〜1分ほどで止まる車が出ます（2倍速なら半分の時間）。</li>
+        <li><b>台数を16台にする</b>リセットされます。同じようにブレーキを押すと、減速の波は後ろへ行くほど浅くなって消えます。</li>
+        <li><b>反応をきびきびに</b>22台に戻し、反応を a = 3.0 くらいにします。これも消える側です。</li>
+        <li><b>渋滞吸収車を入れる</b>渋滞ができている最中にONにすると、止まる車がいなくなっていきます。</li>
+        <li><b>ゆらぎだけで待つ</b>リセットして「運転のゆらぎ」をON。誰もブレーキを押さなくても、2分ほどで渋滞が生まれます。</li>
+      </ol>
+    </div>
+
+    <div class="st">
+      <h3>時空図（実験1）</h3>
+      <p><a class="term" href="#g-st">時空図</a>は、横軸が時間、縦軸がコース上の位置です。1本の縦の点の並びが、その瞬間の全車の位置です。車は右上へ進み、渋滞の赤い帯は右下へ、つまりコースを後ろ向きに進みます。白い点は「あなた」の車です。</p>
+      <div class="st-plot"><canvas id="st" aria-label="実験1の時空図。横軸は時間、縦軸はコース上の位置、点の色は速度。"></canvas></div>
+    </div>
+
+    <div class="pair">
+      <figure class="card">
+        <h3>ブレーキの波が通った順の最低速度</h3>
+        <p class="sub">あなた、1台後ろ、2台後ろ…と、減速の波が届いた順に、その車がいちばん遅くなったときの速度を並べます。一周するとまたあなたの番です。</p>
+        <svg id="wave" viewBox="0 0 400 220" role="img" aria-label="ブレーキの波が通った順の最低速度"></svg>
+        <figcaption id="waveCap">ブレーキを押すと、ここに棒が並びはじめます。</figcaption>
+      </figure>
+      <figure class="card">
+        <h3>育つか消えるかの境目</h3>
+        <p class="sub">色の付いた領域では、小さなブレーキが育って渋滞になります（後半「制御系として見る」の条件）。図をクリックすると、その台数と反応に変わります。</p>
+        <svg id="map" viewBox="0 0 400 240" role="img" aria-label="台数と反応のすばやさによる安定・不安定の図"></svg>
+        <figcaption id="mapCap"></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= Experiment 2 ================= -->
+  <section class="experiment" aria-labelledby="exp2-h" id="exp2">
+    <div class="exp-head">
+      <span class="exp-tag">実験 2</span>
+      <h2 id="exp2-h">サグ部のある道路：先頭が動かない渋滞</h2>
+      <p>長さ3kmの一車線の道路です。入口から一定の交通量で車が入り、1.8km地点から下り坂（4%）、2.2km地点の底から上り坂（4%）になります。上り坂では、運転者は坂の抵抗を補いきれず、車間も長めにとります。運転者のモデルは実験1と同じで、反応は a = 1.5 /s、運転のゆらぎは常にあります。</p>
+    </div>
+
+    <div class="road-bench">
+      <div class="road-plot"><canvas id="road" aria-label="サグ部のある道路を横から見た図。高さは誇張しています。点は車で、色は速度。"></canvas></div>
+
+      <div class="chips" aria-live="off">
+        <div class="chip"><span>入る交通量</span><b id="chipIn">95<small>%</small></b></div>
+        <div class="chip" id="chipOutBox"><span>サグを抜けた量（直近1分）</span><b id="chipOut">—</b></div>
+        <div class="chip" id="chipWaitBox"><span>入口で待っている車</span><b id="chipWait">0<small>台</small></b></div>
+        <div class="chip" id="chipStopBox"><span>止まっている車</span><b id="chipStop">0<small>台</small></b></div>
+      </div>
+
+      <div class="road-panel">
+        <div class="field">
+          <div class="field-head">
+            <label for="demand">交通量</label>
+            <output id="demandOut" for="demand">95 %</output>
+          </div>
+          <input type="range" id="demand" min="60" max="100" step="1" value="95">
+          <div class="scale-ends"><span>平坦な道で流せる最大量に対する割合</span></div>
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label for="dgap">上り坂で広がる車間 Δs</label>
+            <output id="dgapOut" for="dgap">3.0 m</output>
+          </div>
+          <input type="range" id="dgap" min="0" max="4" step="0.5" value="3">
+          <div class="scale-ends"><span id="capUpText">上り坂で流せる量は 80 %</span></div>
+        </div>
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="flat"><span>坂をなくす</span><small>同じ交通量で、平坦な道と比べます。</small></label>
+        </div>
+        <div class="transport">
+          <button type="button" class="btn" id="rplay">一時停止</button>
+          <button type="button" class="btn" id="rreset">リセット</button>
+          <div class="seg" role="radiogroup" aria-label="実験2の再生の速さ">
+            <input type="radio" name="rspd" id="rspd2" value="2"><label for="rspd2">2×</label>
+            <input type="radio" name="rspd" id="rspd4" value="4" checked><label for="rspd4">4×</label>
+            <input type="radio" name="rspd" id="rspd8" value="8"><label for="rspd8">8×</label>
+          </div>
+          <span class="clock" id="rclock">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tryit">
+      <h3>試し方</h3>
+      <ol class="steps">
+        <li><b>そのまま待つ</b>すぐに上り坂で速度が落ち、2〜4分ほど（4倍速で1分前後）で止まる車が出ます。渋滞の先頭は上り坂に居座ったまま、止まる波が上流へ出ていきます。</li>
+        <li><b>坂をなくす</b>同じ95%でも、平坦な道ならそのまま流れます。坂が渋滞のきっかけと、通れる量の上限を作っています。</li>
+        <li><b>交通量を下げる</b>上り坂で流せる量（Δs スライダーの下の値）より少なくすると、サグで少し遅くなるだけで済みます。</li>
+        <li><b>Δs を 0 にする</b>車間の感覚がずれなければ、坂の外乱だけではほとんど渋滞しません。理由は後半の「サグ部のモデル」で。</li>
+      </ol>
+    </div>
+
+    <div class="st">
+      <h3>時空図（実験2）</h3>
+      <p>縦軸が道路上の位置（下が入口、上が出口）、横軸が時間です。帯で示した区間がサグです。渋滞の先頭はサグの上り坂に固定され、そこから赤い帯が右下、つまり上流へ伸びていきます。</p>
+      <div class="st-plot"><canvas id="rst" aria-label="実験2の時空図。横軸は時間、縦軸は道路上の位置、点の色は速度。"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ================= Explanation ================= -->
+  <article class="explain" aria-labelledby="why-h">
+    <h2 id="why-h">なぜ原因なしに渋滞が起きるのか</h2>
+
+    <h3>ブレーキは後ろへ強まって伝わる</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>後ろの車ほど、少し遅れて、少し深く減速します。その「少し」が積み重なります。</b></p>
+    <p>前の車のブレーキランプが光ってから、自分が速度を合わせ終わるまでには少し時間がかかります。そのあいだにも車間は縮むので、追いつくころには前の車より少し強く減速しないと間に合いません。すぐ後ろの車も同じ理由で、さらに少し強く減速します。</p>
+    <figure class="dipfig">
+      <svg id="dipfig" viewBox="0 0 460 250" role="img" aria-label="ブレーキのあと、あなたと後ろの車の速度がどう変わるかのグラフ"></svg>
+      <ul class="keys" id="dipKeys"></ul>
+      <figcaption>実験1と同じモデル（22台、a = 1.5 /s、ゆらぎなし）で、「あなた」が1.5秒ブレーキを踏んだあとの5台の速度を計算したものです。丸は各車がいちばん遅くなった点です。</figcaption>
+    </figure>
+    <p id="dipText">（計算中）</p>
+
+    <h3>渋滞のかたまりは後ろへ進む</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>車は前へ進んでも、止まっている場所は後ろへ動きます。</b></p>
+    <p>渋滞の先頭では、前が空いた車から順に発進して抜けていきます。最後尾には、後ろから来た車が次々に加わります。どの車も前へ進んでいるのに、止まっている場所そのものは後ろへずれていきます。時空図で車の軌跡が右上がり、赤い帯が右下がりなのはこのためです。実験1のモデルでは、帯は <span class="live" id="liveJam">（渋滞ができると表示）</span> で後ろへ動いています。</p>
+
+    <h3>消えるか育つかは、車間と反応で決まる</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>車間に余裕があるか、反応がすばやければ、ゆれは消えます。</b></p>
+    <p>車間に余裕があれば、前の車が減速しても慌てずに済み、減速は後ろへ行くほど浅くなります。車間が詰まっていて反応がのんびりしていると、上乗せのほうが勝ちます。実験1の「育つか消えるかの境目」の図で、色の付いた領域が育つ側です。1周230mに22台（車間およそ6.5m、時速30km）は、反応が a = 1.5 /s ならこのモデルでは育つ側に入ります。台数を減らすか、反応をきびきびさせると、消える側へ移ります。</p>
+
+    <h3>2008年の円形コース実験</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>本物の車22台でも、ボトルネックなしで渋滞が起きました。</b></p>
+    <p>渋滞は、合流やトンネルのような<a class="term" href="#g-bottleneck">ボトルネック</a>（ほかより通れる台数が少ない場所）がなくても起きます。これを実際の車で確かめたのが、杉山雄規・西成活裕らのグループの実験です。1周230mの円形コースに22台の乗用車を並べ、運転手には時速30kmで走るよう頼みました。はじめはそろって走れていた列に、やがて速度のむらが生まれ、数台が一時止まるかたまりができて、それが後ろへ進んでいきました。論文は、ボトルネックは渋滞のきっかけにすぎず、本当の原因ではないと述べています。実験2のサグは、まさにそのきっかけの役をします。</p>
+
+    <!-- ---------- modelling ---------- -->
+    <h2 id="model-h">モデル化</h2>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>本物の交通から、渋滞を説明するのに要るものだけを残して、計算できる式にします。</b></p>
+    <p>このページの結果は、どんなモデルを置いたかで決まります。何を残し、何を捨て、どの数値を選んだかを順に書いておきます。</p>
+    <ol class="model-steps">
+      <li><b>見たいものを決める。</b>知りたいのは「1台の小さな減速が、列を伝わるうちに育つか消えるか」です。そこで、車線変更・追い越し・信号・車種の違いは捨て、1車線を走る車の列だけを残します。</li>
+      <li><b>状態を選ぶ。</b><i>n</i> 番目の車の位置 <i>x<sub>n</sub></i> と速度 <i>v<sub>n</sub></i> を状態にします。前の車（<i>n</i>+1 番目）との車間は <i>s<sub>n</sub></i> = <i>x</i><sub><i>n</i>+1</sub> − <i>x<sub>n</sub></i> − <i>ℓ</i>（<i>ℓ</i> は車の長さ）。<i>N</i> 台なら 2<i>N</i> 個の状態です。</li>
+      <li><b>車を書く（制御対象）。</b>車は「加速度を指令すると速度が変わり、速度で位置が変わる」二重積分器とみなし、エンジンやブレーキの応答の遅れは省きます。
+        <div class="eq">d<i>x<sub>n</sub></i>/d<i>t</i> = <i>v<sub>n</sub></i>,　　d<i>v<sub>n</sub></i>/d<i>t</i> = <i>u<sub>n</sub></i> + <i>d<sub>n</sub></i></div>
+        <i>u<sub>n</sub></i> は運転者が決める加速度、<i>d<sub>n</sub></i> は坂などの<a class="term" href="#g-dist">外乱</a>（運転者が決められない外からの力）です。</li>
+      <li><b>運転者を書く（制御器）。</b>運転者は、車間と相対速度を見て加速度を決めます。
+        <div class="eq"><i>u<sub>n</sub></i> = <i>a</i> [ <i>V</i>(<i>s<sub>n</sub></i>) − <i>v<sub>n</sub></i> ] + <i>λ</i> ( <i>v</i><sub><i>n</i>+1</sub> − <i>v<sub>n</sub></i> )</div>
+        <i>V</i>(<i>s</i>) は「車間が <i>s</i> のときに出したい速度」、<i>a</i> はその速度へどれだけすばやく合わせるか、<i>λ</i> は前の車との速度差にどれだけ反応するかです。前半は最適速度モデル（坂東昌子ら, 1995）、相対速度の項を足した全体は FVD モデル（Jiang ら, 2001）と呼ばれます。</li>
+      <li><b><i>V</i>(<i>s</i>) の形を決める。</b>車間が詰まれば止まり、十分空けば上限の速度で頭打ちになり、その間はなめらかにつながる S 字にします。
+        <div class="eq"><i>V</i>(<i>s</i>) = <i>V</i><sub>max</sub> <span class="frac"><span>tanh((<i>s</i> − <i>s</i><sub>0</sub> − <i>s<sub>c</sub></i>)/<i>w</i>) + tanh(<i>s<sub>c</sub></i>/<i>w</i>)</span><span>1 + tanh(<i>s<sub>c</sub></i>/<i>w</i>)</span></span>　（<i>s</i> &gt; <i>s</i><sub>0</sub>、それ以外は 0）</div>
+        傾きがいちばん急なのは中ほどの車間で、ここが渋滞しやすい密度になります。</li>
+      <li><b>制約を足す。</b>加速は 3 m/s² まで、減速は 9 m/s² まで、速度は 0 以上。前の車に速く近づいているときは、追突しないのに必要な減速度に応じて、なめらかにブレーキを強めます。これらは<a class="term" href="#g-lin">線形解析</a>（小さなずれだけを考えて式を簡単にする調べ方）には出てきませんが、育った波が「止まる」ところまで行ったときの形を決めます。</li>
+      <li><b>数値を決めて、確かめる。</b>下の表の値は、1周230mに22台で時速30kmになり、2008年の実験のように渋滞が出るよう選びました。渋滞の帯が後ろへ進む速さは、このモデルでは <span class="live" id="liveJam2">（実験1で渋滞ができると表示）</span>。実際の高速道路では時速15km前後（およそ10〜20km）と報告されていて、このモデルはやや速めです。</li>
+      <li><b>限界を書いておく。</b>反応のむだ時間を入れていない、全員が同じ性格、1車線だけ、といった単純化があります。数値は実験の再現ではなく、しくみを見るためのものです。</li>
+    </ol>
+    <figure class="vfig">
+      <svg id="vfig" viewBox="0 0 440 240" role="img" aria-label="車間と出したい速度の関係の曲線"></svg>
+      <figcaption>車間 <i>s</i> と出したい速度 <i>V</i>(<i>s</i>)。丸が実験1のいまの台数での走り方、破線がその点での傾き <i>V′</i>(<i>s</i>) です。</figcaption>
+    </figure>
+    <div class="table-scroll">
+      <table class="params">
+        <thead><tr><th>記号</th><th>意味</th><th>値</th></tr></thead>
+        <tbody>
+          <tr><td>ℓ</td><td>車の長さ</td><td>4.0 m</td></tr>
+          <tr><td>s<sub>0</sub></td><td>止まったときの車間</td><td>1.5 m</td></tr>
+          <tr><td>V<sub>max</sub></td><td>出したい速度の上限</td><td>13.5 m/s（48.6 km/h）</td></tr>
+          <tr><td>s<sub>c</sub>, w</td><td>S 字の中心と幅</td><td>3.5 m, 4.0 m</td></tr>
+          <tr><td>a</td><td>速度を合わせる速さ（反応）</td><td>実験1 0.5〜3.5 /s、実験2 1.5 /s</td></tr>
+          <tr><td>λ</td><td>相対速度への反応</td><td>0.4 /s</td></tr>
+          <tr><td>ξ</td><td>運転のゆらぎ（一様乱数）</td><td>±0.4 m/s²</td></tr>
+          <tr><td>L</td><td>円形コースの周長</td><td>230 m</td></tr>
+          <tr><td>Δt</td><td>計算の時間刻み（オイラー法：刻みごとに速度と位置を足していく計算）</td><td>0.05 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ---------- control ---------- -->
+    <h2 id="ctrl-h">制御系として見る</h2>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>運転者は「車間を見てアクセルとブレーキを調整する制御器」です。制御工学の道具を使うと、渋滞が育つ条件を式で書けます。</b></p>
+    <p>モデルをブロック線図（信号の流れを箱と矢印で描いた図）にすると、運転者は「車間から目標速度 <i>V</i>(<i>s</i>) を作り、速度の誤差を <a class="term" href="#g-p">P 制御</a>（ずれに比例した強さで直す制御）で詰め、相対速度（車間の微分）にも反応する」制御器です。車はその出力を積分する制御対象です。前の車の速度が入力、自分の速度が出力で、自分の速度は次の後ろの車の入力になります。</p>
+    <figure class="diagram">
+      <div class="diagram-scroll">
+        <svg viewBox="0 0 680 222" role="img" aria-label="運転者と車のブロック線図">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="bd-head" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="arrd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="bd-dist-head" d="M0,0 L10,5 L0,10 z"/></marker>
+          </defs>
+          <rect class="bd-group" x="62" y="22" width="134" height="72" rx="6"/>
+          <text class="bd-group-label" x="68" y="16">車間の変化（運動学）</text>
+          <rect class="bd-group" x="206" y="22" width="226" height="138" rx="6"/>
+          <text class="bd-group-label" x="212" y="16">運転者（制御器）</text>
+          <rect class="bd-group" x="458" y="22" width="122" height="72" rx="6"/>
+          <text class="bd-group-label" x="464" y="110">車（制御対象）</text>
+
+          <text class="bd-text" x="6" y="56">v</text><text class="bd-up" x="14" y="61" font-size="11">n+1</text>
+          <text class="bd-small" x="6" y="80">前の車の速度</text>
+          <line class="bd-wire" x1="40" y1="60" x2="81" y2="60" marker-end="url(#arr)"/>
+          <circle class="bd-sum" cx="92" cy="60" r="10"/>
+          <text class="bd-sign" x="72" y="52">+</text><text class="bd-sign" x="98" y="84">−</text>
+          <line class="bd-wire" x1="102" y1="60" x2="139" y2="60" marker-end="url(#arr)"/>
+          <circle class="bd-dot" cx="118" cy="60" r="2.6"/>
+          <text class="bd-text" x="122" y="52">ṡ</text>
+          <rect class="bd-box" x="140" y="44" width="44" height="32" rx="3"/><text class="bd-up" x="162" y="65" text-anchor="middle">1/<tspan font-style="italic">p</tspan></text>
+          <line class="bd-wire" x1="184" y1="60" x2="213" y2="60" marker-end="url(#arr)"/>
+          <text class="bd-text" x="192" y="52">s</text>
+          <rect class="bd-box" x="214" y="44" width="56" height="32" rx="3"/><text class="bd-text" x="242" y="65" text-anchor="middle">V(·)</text>
+          <line class="bd-wire" x1="270" y1="60" x2="295" y2="60" marker-end="url(#arr)"/>
+          <circle class="bd-sum" cx="306" cy="60" r="10"/>
+          <text class="bd-sign" x="284" y="52">+</text><text class="bd-sign" x="312" y="84">−</text>
+          <line class="bd-wire" x1="316" y1="60" x2="335" y2="60" marker-end="url(#arr)"/>
+          <rect class="bd-box" x="336" y="44" width="36" height="32" rx="3"/><text class="bd-text" x="354" y="65" text-anchor="middle">a</text>
+          <line class="bd-wire" x1="372" y1="60" x2="401" y2="60" marker-end="url(#arr)"/>
+          <circle class="bd-sum" cx="412" cy="60" r="10"/>
+          <text class="bd-sign" x="390" y="52">+</text><text class="bd-sign" x="418" y="84">+</text>
+          <polyline class="bd-wire" points="118,60 118,128 335,128" marker-end="url(#arr)"/>
+          <rect class="bd-box" x="336" y="112" width="36" height="32" rx="3"/><text class="bd-text" x="354" y="133" text-anchor="middle">λ</text>
+          <polyline class="bd-wire" points="372,128 412,128 412,71" marker-end="url(#arr)"/>
+          <line class="bd-wire" x1="422" y1="60" x2="469" y2="60" marker-end="url(#arr)"/>
+          <text class="bd-text" x="440" y="52">u</text>
+          <circle class="bd-sum" cx="480" cy="60" r="10"/>
+          <text class="bd-sign" x="460" y="52">+</text><text class="bd-sign" x="486" y="40">+</text>
+          <line class="bd-dist" x1="480" y1="4" x2="480" y2="49" marker-end="url(#arrd)"/>
+          <text class="bd-dist-text" x="488" y="12">外乱 d（坂）</text>
+          <line class="bd-wire" x1="490" y1="60" x2="525" y2="60" marker-end="url(#arr)"/>
+          <rect class="bd-box" x="526" y="44" width="44" height="32" rx="3"/><text class="bd-up" x="548" y="65" text-anchor="middle">1/<tspan font-style="italic">p</tspan></text>
+          <line class="bd-wire" x1="570" y1="60" x2="672" y2="60" marker-end="url(#arr)"/>
+          <circle class="bd-dot" cx="604" cy="60" r="2.6"/>
+          <text class="bd-text" x="628" y="52">v</text><text class="bd-up" x="636" y="57" font-size="11">n</text>
+          <text class="bd-small" x="612" y="80">自分の速度</text>
+          <polyline class="bd-wire" points="604,60 604,190 92,190 92,71" marker-end="url(#arr)"/>
+          <polyline class="bd-wire" points="306,190 306,71" marker-end="url(#arr)"/>
+          <circle class="bd-dot" cx="306" cy="190" r="2.6"/>
+          <text class="bd-small" x="612" y="208" text-anchor="end">自分の速度は、後ろの車の入力になる</text>
+        </svg>
+      </div>
+      <figcaption>1台ぶんのブロック線図。<i>p</i> はラプラス変数（時間の式を周波数の式に移すときの変数。<i>s</i> は車間に使っているため <i>p</i> と書きます）。<i>V</i>(·) は非線形の目標速度、<i>a</i> は速度誤差への P ゲイン、<i>λ</i> は車間の変化率 ṡ へのゲイン（変化の速さに反応する、微分の働き）です。</figcaption>
+    </figure>
+
+    <h3>線形化と伝達関数</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>前の車の速度が少しゆれたとき、自分の速度がどうゆれるかを、1本の式にまとめます。</b></p>
+    <p>全員が同じ車間 <i>s</i>* と速度 <i>V</i>(<i>s</i>*) で走る状態（平衡点）のまわりで<a class="term" href="#g-lin">線形化</a>します。<i>V′</i> を平衡点での傾きとすると、前の車の速度から自分の速度への<a class="term" href="#g-tf">伝達関数</a>は次の2次系です。</p>
+    <div class="eq center"><i>G</i>(<i>p</i>) = <span class="frac"><span><i>V<sub>n</sub></i>(<i>p</i>)</span><span><i>V</i><sub><i>n</i>+1</sub>(<i>p</i>)</span></span> = <span class="frac"><span><i>λp</i> + <i>aV′</i></span><span><i>p</i>² + (<i>a</i> + <i>λ</i>)<i>p</i> + <i>aV′</i></span></span></div>
+
+    <h3>1台は安定、列は不安定</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>1台ずつはきちんと前の車についていけます。それでも、ゆっくりした速度のむらは1台通るごとに少しずつ大きくなります。</b></p>
+    <p><i>G</i>(<i>p</i>) の極は <i>p</i>² + (<i>a</i>+<i>λ</i>)<i>p</i> + <i>aV′</i> = 0 の根で、<i>a</i>, <i>λ</i>, <i>V′</i> が正なら必ず左半平面にあります（左半平面にあれば、ゆれはやがて収まります）。どの1台も、前の車に安定に追従します。問題は、この <i>G</i> を何十台も直列につないだときです。<i>n</i> 台後ろの車の速度は <i>G</i>(<i>p</i>)<sup><i>n</i></sup> 倍になるので、ある周波数で |<i>G</i>(<i>jω</i>)|（その周期のゆれが1台で何倍になるか、<a class="term" href="#g-gain">ゲイン</a>）が1を超えると、その成分は後ろへ行くたびに増えます。<a class="term" href="#g-string">列安定性</a>（string stability）の条件は、すべての <i>ω</i> で |<i>G</i>(<i>jω</i>)| ≤ 1 です。</p>
+    <p>計算すると |分母|² − |分子|² = <i>ω</i>²(<i>ω</i>² + <i>a</i>² + 2<i>aλ</i> − 2<i>aV′</i>) なので、条件は次の形になります。</p>
+    <div class="eq center"><i>V′</i>(<i>s</i>*) ≤ <i>a</i>/2 + <i>λ</i>　（破れると不安定）</div>
+    <p>破れると、0 &lt; <i>ω</i> &lt; <i>ω<sub>c</sub></i> = √(2<i>aV′</i> − <i>a</i>² − 2<i>aλ</i>) のゆっくりした速度変化が増幅されます。急なブレーキそのものより、数秒周期のゆるやかな速度のむらのほうが危ないということです。いまの実験1の設定では <span class="live" id="liveCond">V′ = 1.74 /s, a/2 + λ = 1.15 /s</span>。<span id="liveWords"></span></p>
+    <figure class="bfig">
+      <svg id="bode" viewBox="0 0 460 350" role="img" aria-label="伝達関数のゲイン線図"></svg>
+      <figcaption>上：1台あたりのゲイン |<i>G</i>(<i>jω</i>)|（倍）。下：<i>N</i> 台を通ったあとのゲイン |<i>G</i>|<sup><i>N</i></sup>（dB）と、そのうち1台を渋滞吸収車にしたときの |<i>G</i>|<sup><i>N</i>−1</sup>|<i>G</i><sub>av</sub>|。色の帯が増幅される周波数帯。実験1のスライダーに連動します。</figcaption>
+    </figure>
+    <p id="liveBode"></p>
+    <p id="liveCompound"></p>
+
+    <h3>円形コースはフィードバックループ</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>円形コースでは、波が一周して自分に戻ってきます。戻るたびに大きくなれば渋滞になり、途中で1台が波を吸い取れば消えます。</b></p>
+    <p>円形コースでは、最後の車の前に最初の車がいます。<i>G</i> を <i>N</i> 個直列につなぎ、出口を入口へ戻したループです。特性方程式は <i>G</i>(<i>p</i>)<sup><i>N</i></sup> = 1 で、一周のゲイン |<i>G</i>(<i>jω</i>)|<sup><i>N</i></sup> が1を超える帯域があると、そこに位相の合う速度のむらが周回のたびに大きくなります。実験1の棒グラフで、2周目・3周目の棒がさらに低くなるのはこのためです。</p>
+    <p>渋滞吸収車は、このループにローパスフィルタ（ゆっくりした変化だけを通し、速い変化をならすもの）を1個入れることに当たります。吸収車は前の車の速度を20秒かけて平均し、それにゆっくり合わせます。伝達関数は</p>
+    <div class="eq center"><i>G</i><sub>av</sub>(<i>p</i>) = <span class="frac"><span>0.4</span><span>(20<i>p</i> + 1)(<i>p</i> + 0.4)</span></span></div>
+    <p><span id="liveAv">増幅される帯域でのゲインはとても小さく、ほかの車ぶんの増幅を打ち消して余ります。</span>一周のゲインが1を下回るので波は育ちません（<a class="term" href="#g-small">小ゲイン定理</a>の考え方。全員が同じだけずれる <i>ω</i> = 0 の動きは除きます）。</p>
+
+    <h3>線形解析の外側</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>式で分かるのは「育ち始めるか」まで。育ったあとの、止まる車のかたまりの形はシミュレーションで見ます。</b></p>
+    <p>線形化で分かるのは、波が育ち始めるかどうかまでです。育った波は、速度が 0 より下がらない、上限で頭打ちになる、という飽和で振幅が止まり、止まる車のかたまり（ジャムクラスタ）として一定の形で周回します。リミットサイクル（同じ形の振動がくり返し続ける状態）に近いものです。</p>
+    <p>反応のむだ時間 <i>τ</i>（反応が始まるまでの遅れ）を入れると、分母の <i>p</i>² が <i>p</i>²e<sup><i>pτ</i></sup> になります。<i>ω</i> が小さいところの条件は変わりませんが、中ほどの周波数で |<i>G</i>| が1を超えやすくなり、列はさらに不安定になります。このページのモデルにはむだ時間を入れていません。</p>
+
+    <!-- ---------- sag ---------- -->
+    <h2 id="sag-h">サグ部のモデル</h2>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>サグでは、気づかないうちに上り坂で遅くなり、車間も広がります。そのぶん上り坂を通れる台数が減ります。</b></p>
+    <p>NEXCO東日本は、サグ部を「下り坂から上り坂に変化する、無意識のうちに速度が低下しやすいポイント」と説明し、年末年始の渋滞予測でも多くの渋滞ポイントの原因に「サグ部等での速度低下」を挙げています。</p>
+    <p>Goñi-Ros らは、東名高速道路のサグで撮影した車の軌跡などから、サグでは速度が落ちるうえに、速度の割に車頭時間（前の車が通ってから自分が通るまでの時間）が長くなることを示しています。その結果、通れる台数が通常の区間より少なくなります（最大で3割ほどという報告もあります）。原因は、上り坂の抵抗をアクセルの踏み増しで補いきれないことだとされています。</p>
+    <p>そこで実験2では、上り坂の区間で運転者の式に二つの項を足しました。</p>
+    <div class="eq"><i>u<sub>n</sub></i> = <i>a</i> [ <i>V</i>(<i>s<sub>n</sub></i> − Δ<i>s</i>·<i>h</i>(<i>x<sub>n</sub></i>)) − <i>v<sub>n</sub></i> ] + <i>λ</i> ( <i>v</i><sub><i>n</i>+1</sub> − <i>v<sub>n</sub></i> ) + <i>ξ<sub>n</sub></i>,　　<i>d<sub>n</sub></i> = −(1 − <i>κ</i>) <i>g θ</i>(<i>x<sub>n</sub></i>)</div>
+    <ul>
+      <li><i>θ</i>(<i>x</i>)：勾配。下り −4% から上り +4% へなめらかに変わります。<i>g</i> = 9.8 m/s²。</li>
+      <li><i>κ</i> = 0.5：運転者がアクセルの踏み増しで補う割合。残りの (1 − <i>κ</i>)<i>gθ</i> が外乱として車に入ります。</li>
+      <li><i>h</i>(<i>x</i>)：上り坂の度合い（0〜1）。Δ<i>s</i>：上り坂で車間の感覚が広がる量。同じ車間でも出したい速度が下がります。</li>
+      <li><i>ξ<sub>n</sub></i>：運転のゆらぎ（±0.4 m/s² の一様乱数）。</li>
+    </ul>
+
+    <h3>外乱と目標の変化は、制御では別物</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>坂で車が押し戻される分は、運転者がすぐに取り返せます。取り返せないのは、上り坂で「これくらい空けたい」と感じる車間が広がることです。</b></p>
+    <p>勾配の項は<a class="term" href="#g-dist">外乱</a> <i>d</i> です。運転者の速度ループは P 制御なので<a class="term" href="#g-offset">定常偏差</a>（最後まで残るずれ）が残り、その大きさは (1 − <i>κ</i>)<i>gθ</i>/<i>a</i> = <span class="live" id="liveOffset">0.13 m/s（0.5 km/h）</span> です。このモデルでは、坂の外乱そのものはフィードバックでほとんど打ち消されます。</p>
+    <p>Δ<i>s</i> の項は外乱ではなく、目標（<i>V</i>(<i>s</i>) という参照）の変化です。平衡点そのものが動き、上り坂で流せる最大の交通量（容量）が下がります。いまの設定では <span class="live" id="liveCapUp">Δs = 3.0 m → 平坦な道の 80 %</span> です。ループの外側の変化なので、ゲイン <i>a</i> を上げても直りません。実験2で Δ<i>s</i> を 0 にするとほとんど渋滞しないのはこのためです。</p>
+
+    <h3>渋滞の先頭がサグに居座るわけ</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>上り坂を通れる量より多く車が来ると、あふれた分がサグの手前にたまります。たまった所では、実験1と同じしくみで止まる波が生まれます。</b></p>
+    <figure class="flowfig">
+      <svg id="flowfig" viewBox="0 0 460 140" role="img" aria-label="来る量、上り坂で通れる量、あふれてたまる量の比較"></svg>
+      <figcaption id="flowCap"></figcaption>
+    </figure>
+    <p>入る交通量が上り坂の容量を超えると、超えた分の車がサグの手前にたまります。たまった区間は車間が詰まり、<i>V′</i> が大きい、つまり列安定性の条件を破る領域に入ります。そこで小さなゆらぎが増幅され、止まる波になって上流へ出ていきます。先頭は<a class="term" href="#g-bottleneck">ボトルネック</a>になった上り坂に固定され、波だけが後ろへ進みます。サグを抜ける量も、容量より少し下まで落ちます。</p>
+    <p>開いた道路では、波は上流へ流されながら育ちます（<a class="term" href="#g-conv">対流不安定</a>）。円形コースと違って同じ場所に戻ってこないので、育つには種になるゆらぎが絶えず要ります。実験2で運転のゆらぎを常に入れているのはこのためです。</p>
+
+    <h3>サグの対策を制御の言葉で</h3>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>坂を知らせる、車間の感覚を自動で保つ、来る量を減らす、の3つがあります。</b></p>
+    <ul>
+      <li><b>速度回復の呼びかけ（看板・ナビの音声）。</b>運転者に坂を知らせる<a class="term" href="#g-ff">フィードフォワード</a>です。<i>κ</i> を上げ、Δ<i>s</i> を小さくする方向に働きます。NEXCO東日本も上り坂・サグ部で速度回復への協力を呼びかけています。</li>
+      <li><b>ACC（車間を時間で保つ自動追従）。</b>坂でも目標の車頭時間を変えなければ Δ<i>s</i> は生じず、速度ループに積分動作（ずれを積み上げて、残ったずれも消す働き）があれば勾配の外乱による定常偏差も残りません。</li>
+      <li><b>可変速度制限。</b>上流で速度を絞り、サグに入る交通量を上り坂の容量以下に保ちます。流入量を操作量にした制御です。</li>
+    </ul>
+
+    <!-- ---------- remedies ---------- -->
+    <h2 id="fix-h">円形コースの渋滞はどうすれば防げるか</h2>
+    <p class="gist"><span class="gist-label">ひとことで</span><b>車間を空ける、前の車にぴったり合わせない、の2つが基本です。</b></p>
+    <ul>
+      <li><b>車間を空ける。</b><i>V</i>(<i>s</i>) の傾きがゆるい所で走ることになり、条件 <i>V′</i> ≤ <i>a</i>/2 + <i>λ</i> を満たしやすくなります。</li>
+      <li><b>前の車にぴったり合わせない。</b>前が減速しても、車間を少し縮めて速度を保てば、後ろへ伝わる波は小さくなります。いわゆる渋滞吸収運転で、制御の言葉では増幅帯域のゲインを下げることです。</li>
+      <li><b>1台の自動運転車でも効く。</b>Stern らの2018年の実験では、20台あまりが走る円形コースで、1台の自動運転車の速度をこの考え方で制御しただけで、停止と発進をくり返す波が消えました。実験1の「渋滞吸収車」は、この考え方を単純にまねた1台です。</li>
+    </ul>
+
+    <p class="note">このページの車は上の式で動いています。数値は2008年の実験や実際のサグを再現したものではなく、しくみを見るためのものです。実験1で「運転のゆらぎ」がOFFのあいだは、誰かがブレーキを踏まない限り、列はそろったまま走り続けます。</p>
+
+    <h2 id="glossary-h">用語集</h2>
+    <dl class="glossary">
+      <div id="g-st"><dt>時空図</dt><dd>横軸に時間、縦軸に道路上の位置をとり、各車の位置を点で打った図。車の動きと、渋滞の帯の動きを一度に見られます。</dd></div>
+      <div id="g-bottleneck"><dt>ボトルネック</dt><dd>道路の中で、ほかより通れる台数が少ない場所。合流部、トンネルの入口、サグなどです。</dd></div>
+      <div id="g-dist"><dt>外乱</dt><dd>制御する側が決められない、外からの力や変化。ここでは上り坂で車が押し戻される力です。</dd></div>
+      <div id="g-p"><dt>P 制御</dt><dd>目標とのずれに比例した強さで直す制御。ここでは「出したい速度」と今の速度の差に比例して加速・減速します。</dd></div>
+      <div id="g-lin"><dt>線形化・平衡点</dt><dd>全員が同じ車間・同じ速度で走る状態が平衡点です。そのまわりの小さなずれだけを考え、式を比例の関係に直すことを線形化といいます。</dd></div>
+      <div id="g-tf"><dt>伝達関数</dt><dd>入力（前の車の速度）がゆれたとき、出力（自分の速度）がどうゆれるかを、ゆれの速さ（周波数）ごとに表した式です。</dd></div>
+      <div id="g-gain"><dt>ゲイン</dt><dd>ある周期のゆれが、1台を通るあいだに何倍になるか。1より大きければ増え、1より小さければ減ります。</dd></div>
+      <div id="g-string"><dt>列安定性</dt><dd>車の列を伝わるあいだに、どの周期のゆれも大きくならない性質。英語では string stability。1台ずつの安定とは別の性質です。</dd></div>
+      <div id="g-small"><dt>小ゲイン定理</dt><dd>ループを一周したゲインが1より小さければ、ゆれは育たないという定理です。</dd></div>
+      <div id="g-offset"><dt>定常偏差</dt><dd>制御を続けても最後まで残る、目標とのずれ。P 制御で坂のような一定の外乱を受けると残ります。</dd></div>
+      <div id="g-ff"><dt>フィードフォワード</dt><dd>外乱が来ることを前もって知り、ずれが出る前に操作すること。看板で坂を知らせ、先にアクセルを踏んでもらうのがこれに当たります。</dd></div>
+      <div id="g-conv"><dt>対流不安定</dt><dd>ゆれが育ちながら、同じ場所にとどまらずに流されていく不安定さ。開いた道路の渋滞の波は、上流へ流されながら大きくなります。</dd></div>
+    </dl>
+
+    <h3>参考文献</h3>
+    <ul class="refs">
+      <li>Y. Sugiyama et al., “Traffic jams without bottlenecks—experimental evidence for the physical mechanism of the formation of a jam,” <i>New J. Phys.</i> 10, 033001 (2008). <a href="https://doi.org/10.1088/1367-2630/10/3/033001">doi.org/10.1088/1367-2630/10/3/033001</a></li>
+      <li>M. Bando et al., “Dynamical model of traffic congestion and numerical simulation,” <i>Phys. Rev. E</i> 51, 1035 (1995). <a href="https://doi.org/10.1103/PhysRevE.51.1035">doi.org/10.1103/PhysRevE.51.1035</a></li>
+      <li>R. Jiang, Q. Wu, Z. Zhu, “Full velocity difference model for a car-following theory,” <i>Phys. Rev. E</i> 64, 017101 (2001). <a href="https://doi.org/10.1103/PhysRevE.64.017101">doi.org/10.1103/PhysRevE.64.017101</a></li>
+      <li>R. E. Stern et al., “Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments,” <i>Transportation Research Part C</i> 89, 205–221 (2018). <a href="https://arxiv.org/abs/1705.01693">arxiv.org/abs/1705.01693</a></li>
+      <li>B. Goñi-Ros, V. L. Knoop, B. van Arem, S. P. Hoogendoorn, “Empirical analysis of the causes of stop-and-go waves at sags,” <i>IET Intelligent Transport Systems</i> 8(5), 499–506 (2014).</li>
+      <li>B. Goñi-Ros et al., “Car-following behavior at sags and its impacts on traffic flow,” TRB 92nd Annual Meeting (2013). <a href="https://research.tudelft.nl/en/publications/car-following-behavior-at-sags-and-its-impacts-on-traffic-flow">research.tudelft.nl</a></li>
+      <li>NEXCO東日本「年末年始期間の高速道路渋滞予測について【NEXCO東日本版】」（2023年11月28日）. <a href="https://www.e-nexco.co.jp/pressroom/cms_assets/pressroom/2023/11/28d/pdf.pdf">e-nexco.co.jp</a></li>
+    </ul>
+  </article>
+</div>
+
+<script>
+// ==CORE==
+// Driver model (units: m, s). Car n follows car n+1.
+const L = 230, CAR = 4.0, S0 = 1.5;          // ring length, car length, standstill gap
+const VM = 13.5, SC = 3.5, WD = 4.0;          // optimal-velocity curve
+const LAM = 0.4;                               // response to speed difference
+const BRAKE_DECEL = 3, TAP_BRAKE = 1.5, NOISE = 0.4;
+const TH = Math.tanh(SC / WD);
+
+function optimalSpeed(s) {
+  const q = s - S0;
+  return q <= 0 ? 0 : VM * (Math.tanh((q - SC) / WD) + TH) / (1 + TH);
+}
+function optimalSlope(s) {
+  const q = s - S0;
+  if (q <= 0) return 0;
+  const c = Math.cosh((q - SC) / WD);
+  return VM / (WD * (1 + TH)) / (c * c);
+}
+function equilibriumGap(N) { return L / N - CAR; }
+function criticalA(N) { return 2 * (optimalSlope(equilibriumGap(N)) - LAM); }
+
+// Shared safety layer: cap acceleration by the deceleration needed to match the car ahead, never overlap.
+function safeAccel(A, v, vLead, s) {
+  if (v > vLead) {
+    const need = (v * v - vLead * vLead) / (2 * Math.max(s - 0.8, 0.1));
+    A = Math.min(A, 3 - 2 * need);   // continuous cap: no braking when need is small, at least `need` once need >= 3
+  }
+  if (s < S0) A = Math.min(A, -v / 0.4);
+  return Math.max(-9, Math.min(3, A));
+}
+
+class Ring {
+  constructor(N) {
+    this.a = 1.5; this.noise = false; this.absorber = false;
+    this.braking = false;
+    this.reset(N);
+  }
+  reset(N) {
+    this.N = N; this.t = 0;
+    const v0 = optimalSpeed(equilibriumGap(N));
+    this.x = new Float64Array(N); this.v = new Float64Array(N); this.acc = new Float64Array(N);
+    for (let i = 0; i < N; i++) { this.x[i] = i * L / N; this.v[i] = v0; }
+    this.you = 0;
+    this.av = Math.floor(N / 2);
+    this.avTarget = v0;
+    this.brakeUntil = -1;
+    this.braking = false;
+  }
+  gap(i) {
+    let g = this.x[(i + 1) % this.N] - this.x[i];
+    if (g < 0) g += L;
+    return g - CAR;
+  }
+  isBraking() { return this.braking || this.t < this.brakeUntil; }
+  step(dt) {
+    const { N, x, v, acc } = this;
+    const braking = this.isBraking();
+    for (let i = 0; i < N; i++) {
+      const j = (i + 1) % N, s = this.gap(i);
+      let A;
+      if (this.absorber && i === this.av && !(braking && i === this.you)) {
+        // Follow the slow average of the car ahead, keep a safe headway, accelerate gently.
+        const vSafe = Math.max(0, (s - S0 - 1) / 1.0);
+        A = Math.max(-4, Math.min(1, 0.4 * (Math.min(this.avTarget, vSafe) - v[i])));
+      } else {
+        A = this.a * (optimalSpeed(s) - v[i]) + LAM * (v[j] - v[i]);
+      }
+      if (braking && i === this.you) A = Math.min(A, -BRAKE_DECEL);
+      if (this.noise) A += NOISE * (Math.random() * 2 - 1);
+      acc[i] = safeAccel(A, v[i], v[j], s);
+    }
+    this.avTarget += (v[(this.av + 1) % N] - this.avTarget) * dt / 20;
+    for (let i = 0; i < N; i++) {
+      v[i] = Math.max(0, v[i] + acc[i] * dt);
+      x[i] = (x[i] + v[i] * dt) % L;
+    }
+    this.t += dt;
+  }
+}
+
+// Follows the slowdown wave car by car: you, 1 behind, 2 behind, ... up to three laps.
+class WaveTracker {
+  constructor() { this.active = false; }
+  start(ring) {
+    const N = ring.N;
+    this.active = true; this.N = N; this.you = ring.you; this.t0 = ring.t;
+    this.vRef = ring.v[ring.you];
+    this.events = [];
+    this.used = new Float64Array(N).fill(-1);
+    this.det = Array.from({ length: N }, (_, i) => ({ peak: ring.v[i], min: 0, tMin: 0, dropped: false, list: [] }));
+    this.state = 'running';
+  }
+  carAt(m) { return ((this.you - m) % this.N + this.N) % this.N; }
+  update(ring) {
+    if (!this.active || this.state !== 'running') return;
+    const t = ring.t;
+    for (let i = 0; i < this.N; i++) {
+      const d = this.det[i], v = ring.v[i];
+      if (!d.dropped) {
+        if (v > d.peak) d.peak = v;
+        if (v < d.peak - 0.5) { d.dropped = true; d.min = v; d.tMin = t; }
+      } else if (v < d.min) { d.min = v; d.tMin = t; }
+      else if (v > d.min + 0.4) { d.list.push({ t: d.tMin, v: d.min }); d.dropped = false; d.peak = v; }
+    }
+    for (;;) {
+      const m = this.events.length;
+      if (m >= 3 * this.N) { this.state = 'done'; break; }
+      const car = this.carAt(m);
+      const tPrev = m ? this.events[m - 1].t : this.t0 - 0.01;
+      const e = this.det[car].list.find(ev => ev.t > tPrev - 0.5 && ev.t > this.used[car]);
+      if (!e) {
+        if (t - tPrev > 25 && !this.det[car].dropped) this.state = 'faded';
+        break;
+      }
+      this.used[car] = e.t;
+      this.events.push({ m, car, t: e.t, v: e.v });
+    }
+  }
+  pending() {
+    if (!this.active || this.state !== 'running') return null;
+    const m = this.events.length, car = this.carAt(m), d = this.det[car];
+    const tPrev = m ? this.events[m - 1].t : this.t0 - 0.01;
+    return d.dropped && d.tMin > tPrev - 0.5 ? { m, v: d.min } : null;
+  }
+}
+
+// Measures how fast the largest cluster of slow cars moves along the ring.
+class JamMeter {
+  constructor() { this.clear(); }
+  clear() { this.samples = []; this.prev = null; this.acc = 0; this.speed = null; }
+  sample(ring) {
+    const { N, v, x } = ring, slow = 2;
+    let best = null;
+    let start = -1;
+    for (let i = 0; i < N; i++) if (v[i] >= slow) { start = i; break; }
+    if (start < 0) { this.clear(); return; }
+    let group = [];
+    const flush = () => {
+      if (group.length && (!best || group.length > best.length)) best = group;
+      group = [];
+    };
+    for (let k = 1; k <= N; k++) {
+      const i = (start + k) % N;
+      if (v[i] < slow) group.push(i); else flush();
+    }
+    flush();
+    if (!best || best.length < 2 || Math.min(...best.map(i => v[i])) > 0.5) { this.clear(); return; }
+    const base = x[best[0]];
+    let sum = 0;
+    for (const i of best) { let d = x[i] - base; if (d < -L / 2) d += L; sum += d; }
+    const p = (base + sum / best.length + L) % L;
+    if (this.prev !== null) {
+      let d = p - this.prev;
+      if (d > L / 2) d -= L; if (d < -L / 2) d += L;
+      if (Math.abs(d) > 25) { this.samples = []; this.acc = 0; }
+      else this.acc += d;
+    }
+    this.prev = p;
+    this.samples.push({ t: ring.t, y: this.acc });
+    while (this.samples.length && ring.t - this.samples[0].t > 20) this.samples.shift();
+    const n = this.samples.length;
+    if (n < 2 || this.samples[n - 1].t - this.samples[0].t < 8) { this.speed = null; return; }
+    let st = 0, sy = 0, stt = 0, sty = 0;
+    for (const s of this.samples) { st += s.t; sy += s.y; stt += s.t * s.t; sty += s.t * s.y; }
+    this.speed = (n * sty - st * sy) / (n * stt - st * st);
+  }
+}
+
+// Linearised string: |G(jw)| from the car ahead to this car, and the absorber's |G_av(jw)|.
+function gainG(a, Vp, w) {
+  const num = a * a * Vp * Vp + LAM * LAM * w * w;
+  const den = (a * Vp - w * w) ** 2 + (a + LAM) ** 2 * w * w;
+  return Math.sqrt(num / den);
+}
+function gainAV(w) { return 0.4 / (Math.hypot(1, 20 * w) * Math.hypot(w, 0.4)); }
+
+// ---- Experiment 2: open road with a sag. Inflow at x = 0, free outflow at x = LR. ----
+const LR = 3000, SAG0 = 1800, SAGL = 800, THETA = 0.04, KAPPA = 0.5, GRAV = 9.8;
+const ROAD_A = 1.5, DETECT = 2900;
+function sagGrade(x) { return (x >= SAG0 && x < SAG0 + SAGL) ? -THETA * Math.sin(2 * Math.PI * (x - SAG0) / SAGL) : 0; }
+function sagHeight(x) { return (x >= SAG0 && x < SAG0 + SAGL) ? THETA * SAGL / (2 * Math.PI) * (Math.cos(2 * Math.PI * (x - SAG0) / SAGL) - 1) : 0; }
+function uphill(x) { return Math.max(0, sagGrade(x) / THETA); }
+const GRADE_OFFSET = (1 - KAPPA) * GRAV * THETA / ROAD_A;   // steady-state speed loss of the P loop
+function capacityOf(ds, offset) {
+  let best = 0;
+  for (let s = S0; s < 80; s += 0.02) best = Math.max(best, (optimalSpeed(s - ds) - offset) / (s + CAR));
+  return best;
+}
+const Q_MAX = capacityOf(0, 0);
+function freeFlowGap(q) {
+  let sCap = S0, best = 0;
+  for (let s = S0; s < 80; s += 0.02) { const qq = optimalSpeed(s) / (s + CAR); if (qq > best) { best = qq; sCap = s; } }
+  let lo = sCap, hi = 400;
+  for (let k = 0; k < 60; k++) { const m = (lo + hi) / 2; if (optimalSpeed(m) / (m + CAR) > q) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+
+class Road {
+  constructor() { this.ds = 3; this.sag = true; this.setDemand(0.95); this.reset(); }
+  setDemand(f) { this.f = f; this.sf = freeFlowGap(f * Q_MAX); this.vf = optimalSpeed(this.sf); }
+  reset() {
+    this.t = 0; this.credit = 0; this.passes = [];
+    this.x = []; this.v = []; this.acc = [];
+    for (let x = LR - 1; x > 0; x -= this.sf + CAR) { this.x.push(x); this.v.push(this.vf); this.acc.push(0); }
+  }
+  step(dt) {
+    const { x, v, acc } = this, n = x.length;
+    for (let i = 0; i < n; i++) {
+      const s = i === 0 ? 1e4 : x[i - 1] - x[i] - CAR, vl = i === 0 ? v[i] : v[i - 1];
+      const xc = x[i] - CAR / 2;
+      const th = this.sag ? sagGrade(xc) : 0, up = this.sag ? uphill(xc) : 0;
+      let A = ROAD_A * (optimalSpeed(s - this.ds * up) - v[i]) + LAM * (vl - v[i]);
+      A += NOISE * (Math.random() * 2 - 1);
+      A -= (1 - KAPPA) * GRAV * th;
+      acc[i] = safeAccel(A, v[i], vl, s);
+    }
+    for (let i = 0; i < n; i++) {
+      v[i] = Math.max(0, v[i] + acc[i] * dt);
+      const xo = x[i];
+      x[i] += v[i] * dt;
+      if (xo < DETECT && x[i] >= DETECT) this.passes.push(this.t);
+    }
+    while (x.length && x[0] > LR) { x.shift(); v.shift(); acc.shift(); }
+    this.credit += this.f * Q_MAX * dt;
+    const m = x.length, gap0 = m ? x[m - 1] - CAR : 1e4;
+    if (this.credit >= 1 && gap0 >= this.sf) {
+      x.push(gap0 - this.sf); v.push(Math.min(this.vf, m ? v[m - 1] + 2 : this.vf)); acc.push(0);
+      this.credit -= 1;
+    }
+    this.t += dt;
+    while (this.passes.length && this.t - this.passes[0] > 60) this.passes.shift();
+  }
+  outflow() { const span = Math.min(60, this.t); return span >= 20 ? this.passes.length / span / Q_MAX : null; }
+  waiting() { return Math.floor(this.credit); }
+  stopped() { let k = 0; for (const vi of this.v) if (vi < 0.5) k++; return k; }
+}
+// ==/CORE==
+
+(() => {
+  const $ = id => document.getElementById(id);
+  const DT = 0.05, SAMPLE = 0.25, HISTORY = 600, PRERUN = 40;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Speed colours follow road-traffic map conventions: red = stopped, orange/amber = congested, green/blue = flowing.
+  const STOPS = [[0, [179, 38, 30]], [8, [226, 88, 26]], [18, [238, 166, 20]], [28, [88, 166, 104]], [40, [47, 143, 174]], [48, [62, 118, 196]]];
+  const BIN_KMH = 2, BINS = 25;
+  function colorAt(kmh) {
+    kmh = Math.max(0, Math.min(48, kmh));
+    for (let k = 1; k < STOPS.length; k++) {
+      if (kmh <= STOPS[k][0]) {
+        const [k0, c0] = STOPS[k - 1], [k1, c1] = STOPS[k], f = (kmh - k0) / (k1 - k0);
+        return `rgb(${c0.map((c, n) => Math.round(c + (c1[n] - c) * f)).join(',')})`;
+      }
+    }
+    return 'rgb(62,118,196)';
+  }
+  const BIN_COLORS = Array.from({ length: BINS }, (_, b) => colorAt(b * BIN_KMH + BIN_KMH / 2));
+  const binOf = v => Math.min(BINS - 1, Math.floor(v * 3.6 / BIN_KMH));
+  $('legendBar').style.background = `linear-gradient(90deg, ${STOPS.map(([k]) => `${colorAt(k)} ${(k / 48 * 100).toFixed(1)}%`).join(', ')})`;
+
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+  function sizeCanvas(cv, w, h) {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  }
+
+  // ---- theme tokens for canvas ----
+  const tok = {};
+  function readTokens() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ['bg', 'fg', 'muted', 'line', 'surface', 'asphalt', 'paint', 'terrain', 'brake', 'plot-bg', 'plot-fg', 'plot-grid', 'plot-band', 'grow-line']) tok[k] = cs.getPropertyValue('--' + k).trim();
+  }
+  function onTheme() { readTokens(); stDirty = true; rebuildRoadST(); renderAll(); renderRoad(); }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', onTheme);
+  new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // ===================================================================
+  // Experiment 1: ring
+  // ===================================================================
+  const ring = new Ring(22);
+  const wave = new WaveTracker();
+  const jam = new JamMeter();
+  let hist, histLen, histHead, brakeMarks, tStart, nextSample, nextJam;
+  let running = !reduceMotion, speedMul = 2, pressT = null, stDirty = true;
+
+  function resetHistory() {
+    hist = { x: new Float32Array(HISTORY * ring.N), b: new Uint8Array(HISTORY * ring.N), you: new Int16Array(HISTORY), t: new Float64Array(HISTORY) };
+    histLen = 0; histHead = 0; brakeMarks = [];
+  }
+  function record() {
+    const N = ring.N, row = histHead * N;
+    for (let i = 0; i < N; i++) { hist.x[row + i] = ring.x[i]; hist.b[row + i] = binOf(ring.v[i]); }
+    hist.you[histHead] = ring.you;
+    hist.t[histHead] = ring.t;
+    histHead = (histHead + 1) % HISTORY;
+    histLen = Math.min(HISTORY, histLen + 1);
+  }
+  function advance(dt) {
+    ring.step(dt);
+    wave.update(ring);
+    if (ring.t >= nextSample) { record(); nextSample += SAMPLE; stDirty = true; }
+    if (ring.t >= nextJam) { jam.sample(ring); nextJam += 0.5; }
+  }
+  function restart() {
+    ring.reset(+$('cars').value);
+    ring.a = +$('sens').value;
+    ring.noise = $('noise').checked;
+    ring.absorber = $('absorber').checked;
+    wave.active = false; jam.clear(); resetHistory();
+    nextSample = 0; nextJam = 0;
+    const noise = ring.noise; ring.noise = false;      // pre-run steady flow so the space-time strip starts filled
+    while (ring.t < PRERUN) advance(DT);
+    ring.noise = noise;
+    tStart = ring.t;
+    stDirty = true;
+    renderAll();
+  }
+
+  // ---- brake input ----
+  const brakeBtn = $('brake');
+  function pressBrake() {
+    if (ring.braking) return;
+    ring.braking = true; pressT = ring.t;
+    brakeBtn.setAttribute('aria-pressed', 'true');
+    wave.start(ring);
+    brakeMarks.push(ring.t);
+    if (!running) setRunning(true);
+  }
+  function releaseBrake() {
+    if (!ring.braking) return;
+    ring.braking = false;
+    ring.brakeUntil = Math.max(ring.brakeUntil, pressT + TAP_BRAKE);
+    brakeBtn.setAttribute('aria-pressed', 'false');
+  }
+  brakeBtn.addEventListener('pointerdown', e => { e.preventDefault(); brakeBtn.setPointerCapture?.(e.pointerId); pressBrake(); });
+  brakeBtn.addEventListener('pointerup', releaseBrake);
+  brakeBtn.addEventListener('pointercancel', releaseBrake);
+  brakeBtn.addEventListener('lostpointercapture', releaseBrake);
+  brakeBtn.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); pressBrake(); } });
+  brakeBtn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); releaseBrake(); } });
+  window.addEventListener('keydown', e => {
+    if ((e.key === 'b' || e.key === 'B') && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) pressBrake();
+  });
+  window.addEventListener('keyup', e => { if (e.key === 'b' || e.key === 'B') releaseBrake(); });
+  window.addEventListener('blur', releaseBrake);
+
+  // ---- controls ----
+  function setRunning(on) { running = on; $('play').textContent = on ? '一時停止' : '再生'; }
+  $('play').addEventListener('click', () => setRunning(!running));
+  $('reset').addEventListener('click', restart);
+  document.querySelectorAll('input[name="spd"]').forEach(r => r.addEventListener('change', () => { speedMul = +r.value; }));
+  $('cars').addEventListener('input', () => { updateLabels(); restart(); });
+  $('sens').addEventListener('input', () => { ring.a = +$('sens').value; updateLabels(); });
+  $('noise').addEventListener('change', () => { ring.noise = $('noise').checked; });
+  $('absorber').addEventListener('change', () => { ring.absorber = $('absorber').checked; });
+
+  function bodeSummary(N, a) {
+    const Vp = optimalSlope(equilibriumGap(N));
+    let peak = 0, wPeak = 0, prodMax = 0;
+    for (let lw = -2.5; lw <= 1; lw += 0.004) {
+      const w = 10 ** lw, g = gainG(a, Vp, w);
+      if (g > peak) { peak = g; wPeak = w; }
+      if (w > 0.005) prodMax = Math.max(prodMax, g ** (N - 1) * gainAV(w));
+    }
+    const wc2 = 2 * a * Vp - a * a - 2 * a * LAM;
+    return { Vp, peak, wPeak, wc: wc2 > 0 ? Math.sqrt(wc2) : 0, prodMax };
+  }
+
+  function updateLabels() {
+    const N = +$('cars').value, a = +$('sens').value;
+    const s = equilibriumGap(N), slope = optimalSlope(s), grow = a < criticalA(N);
+    $('carsOut').textContent = `${N} 台 ・ 車間 ${s.toFixed(1)} m`;
+    $('sensOut').textContent = `a = ${a.toFixed(1)} /s`;
+    $('status').dataset.kind = grow ? 'grow' : 'fade';
+    $('statusText').textContent = grow
+      ? '育つ設定です。小さなブレーキが渋滞になります。'
+      : '消える設定です。ブレーキのゆれは後ろで弱まります。';
+    $('liveCond').textContent = `V′ = ${slope.toFixed(2)} /s, a/2 + λ = ${(a / 2 + LAM).toFixed(2)} /s`;
+    const bs = bodeSummary(N, a);
+    if (grow) {
+      $('liveWords').textContent = `条件を破っているので、周期 ${(2 * Math.PI / bs.wc).toFixed(0)} 秒より長い速度変化（ω < ${bs.wc.toFixed(2)} rad/s）が増幅されます。`;
+      $('liveBode').textContent = `いまの設定（${N}台、a = ${a.toFixed(1)}）では、1台あたりの増幅は最大 ${bs.peak.toFixed(3)} 倍で、周期 ${(2 * Math.PI / bs.wPeak).toFixed(0)} 秒ほどの速度変化がいちばん育ちます。1台では数%でも、${N}台を通ると ${(bs.peak ** N).toFixed(1)} 倍（+${(20 * Math.log10(bs.peak ** N)).toFixed(1)} dB）です。`;
+      $('liveAv').textContent = `いまの設定では、いちばん育つ周期での吸収車のゲインは ${gainAV(bs.wPeak).toFixed(3)} です。残り${N - 1}台ぶんの増幅とかけ合わせた一周のゲインは、最大でも ${bs.prodMax.toFixed(2)} 倍${bs.prodMax <= 1.001 ? 'で、1を超えません。' : 'で、1を超えてしまいます。反応がここまでのんびりだと、吸収車1台では足りません。'}`;
+    } else {
+      $('liveWords').textContent = '条件を満たしているので、どの周期の速度変化も後ろへ行くほど小さくなります。';
+      $('liveBode').textContent = `いまの設定（${N}台、a = ${a.toFixed(1)}）では、|G(jω)| はすべての周波数で1以下です。どの周期の速度変化も、後ろの車ほど小さくなります。`;
+      $('liveAv').textContent = 'いまの設定はもともと安定ですが、吸収車を入れると増幅される帯域のゲインがさらに下がります。';
+    }
+    $('liveCompound').textContent = grow
+      ? `複利の預金にたとえると、1台あたり ${((bs.peak - 1) * 100).toFixed(1)} % の増幅は、利率 ${((bs.peak - 1) * 100).toFixed(1)} % の複利と同じ形です。${N}台ぶん掛け合わせると ${(bs.peak ** N).toFixed(1)} 倍になります。1台ごとの差は小さくても、台数の回数だけ掛け算されるので大きくなります。`
+      : `複利にたとえると、利率がゼロ以下の預金です。どの周期でも1台あたり1倍以下なので、${N}台ぶん掛け合わせても大きくなりません。`;
+    drawMap(); drawVfig(); drawBode();
+  }
+
+  // ---- ring canvas ----
+  const ringCv = $('ring'), rctx = ringCv.getContext('2d');
+  let ringSize = 0;
+  function ringGeom() {
+    const S = ringSize, R = S * 0.35, Rm = L / (2 * Math.PI);
+    return { S, cx: S / 2, cy: S / 2, R, k: R / Rm, Rm };
+  }
+  function carPose(g, pos) {
+    const th = pos / g.Rm;
+    return { px: g.cx + g.R * Math.cos(th), py: g.cy - g.R * Math.sin(th), rot: Math.atan2(-Math.cos(th), -Math.sin(th)), th };
+  }
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath();
+  }
+  function drawRing() {
+    if (!ringSize) return;
+    const g = ringGeom(), c = rctx, { k } = g;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, g.S, g.S);
+    const roadW = 3.8 * k;
+    c.lineWidth = roadW; c.strokeStyle = tok.asphalt;
+    c.beginPath(); c.arc(g.cx, g.cy, g.R, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = Math.max(1, 0.14 * k); c.strokeStyle = tok.paint; c.globalAlpha = .75;
+    for (const r of [g.R - roadW / 2 + 0.35 * k, g.R + roadW / 2 - 0.35 * k]) { c.beginPath(); c.arc(g.cx, g.cy, r, 0, Math.PI * 2); c.stroke(); }
+    c.globalAlpha = 1;
+
+    // distance markers, matching the space-time axis
+    c.font = `500 ${Math.max(10, g.S * 0.022)}px "Overpass", sans-serif`;
+    c.fillStyle = tok.muted; c.strokeStyle = tok.muted; c.lineWidth = 1; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let m = 0; m < L; m += 50) {
+      const th = m / g.Rm, cos = Math.cos(th), sin = Math.sin(th);
+      const r0 = g.R + roadW / 2 + 3, r1 = r0 + 0.012 * g.S, rl = r1 + 0.04 * g.S;
+      c.beginPath(); c.moveTo(g.cx + r0 * cos, g.cy - r0 * sin); c.lineTo(g.cx + r1 * cos, g.cy - r1 * sin); c.stroke();
+      c.fillText(m + ' m', g.cx + rl * cos, g.cy - rl * sin);
+    }
+    // direction arrow inside the ring (counter-clockwise)
+    const ra = g.R - roadW / 2 - 0.035 * g.S, a0 = Math.PI * 0.62, a1 = Math.PI * 0.38;
+    c.strokeStyle = tok.muted; c.fillStyle = tok.muted; c.lineWidth = Math.max(1.2, g.S * 0.003);
+    c.beginPath(); c.arc(g.cx, g.cy, ra, -a0, -a1); c.stroke();
+    const ex = g.cx + ra * Math.cos(a0), ey = g.cy - ra * Math.sin(a0), ah = g.S * 0.016;
+    c.save(); c.translate(ex, ey); c.rotate(Math.atan2(-Math.cos(a0), -Math.sin(a0)));
+    c.beginPath(); c.moveTo(ah, 0); c.lineTo(-ah * 0.6, -ah * 0.6); c.lineTo(-ah * 0.6, ah * 0.6); c.closePath(); c.fill(); c.restore();
+
+    const braking = ring.isBraking();
+    const lenPx = CAR * k * 0.92, widPx = 1.9 * k;
+    for (let i = 0; i < ring.N; i++) {
+      const p = carPose(g, ring.x[i] - CAR / 2);
+      c.save(); c.translate(p.px, p.py); c.rotate(p.rot);
+      c.fillStyle = colorAt(ring.v[i] * 3.6);
+      roundRect(c, -lenPx / 2, -widPx / 2, lenPx, widPx, widPx * 0.3); c.fill();
+      c.fillStyle = 'rgba(0,0,0,.28)';
+      c.fillRect(lenPx * 0.08, -widPx * 0.36, lenPx * 0.16, widPx * 0.72);
+      if (ring.absorber && i === ring.av) {
+        c.fillStyle = tok.paint;
+        c.fillRect(-lenPx * 0.32, -widPx * 0.12, lenPx * 0.5, widPx * 0.24);
+      }
+      const lit = ring.acc[i] < -0.8 || (braking && i === ring.you);
+      if (lit) {
+        c.shadowColor = 'rgba(255,40,30,.95)'; c.shadowBlur = Math.max(6, k * 2.2);
+        c.fillStyle = '#ff2a1f';
+      } else c.fillStyle = 'rgba(90,20,18,.85)';
+      const bl = Math.max(2, widPx * 0.26);
+      c.fillRect(-lenPx / 2 - 0.5, -widPx / 2 + 1, bl * 0.7, bl);
+      c.fillRect(-lenPx / 2 - 0.5, widPx / 2 - 1 - bl, bl * 0.7, bl);
+      c.shadowBlur = 0;
+      if (i === ring.you) {
+        c.strokeStyle = tok.paint; c.lineWidth = Math.max(2, k * 0.4);
+        roundRect(c, -lenPx / 2 - k * 0.45, -widPx / 2 - k * 0.45, lenPx + k * 0.9, widPx + k * 0.9, widPx * 0.45); c.stroke();
+      }
+      c.restore();
+    }
+    c.font = `700 ${Math.max(11, g.S * 0.026)}px "BIZ UDPGothic", sans-serif`;
+    const label = (i, text) => {
+      const p = carPose(g, ring.x[i] - CAR / 2), r0 = g.R + roadW / 2 + 2, r1 = g.R + roadW / 2 + g.S * 0.03;
+      const cos = Math.cos(p.th), sin = Math.sin(p.th);
+      c.strokeStyle = tok.fg; c.lineWidth = 1.2;
+      c.beginPath(); c.moveTo(g.cx + r0 * cos, g.cy - r0 * sin); c.lineTo(g.cx + (r1 - g.S * 0.006) * cos, g.cy - (r1 - g.S * 0.006) * sin); c.stroke();
+      c.fillStyle = tok.fg;
+      c.textAlign = cos > 0.35 ? 'left' : cos < -0.35 ? 'right' : 'center';
+      c.textBaseline = sin > 0.35 ? 'bottom' : sin < -0.35 ? 'top' : 'middle';
+      c.fillText(text, g.cx + r1 * cos, g.cy - r1 * sin);
+    };
+    label(ring.you, 'あなた');
+    if (ring.absorber && ring.av !== ring.you) label(ring.av, '吸収車');
+  }
+  ringCv.addEventListener('click', e => {
+    const rect = ringCv.getBoundingClientRect(), g = ringGeom();
+    const mx = e.clientX - rect.left - g.cx, my = e.clientY - rect.top - g.cy;
+    if (Math.abs(Math.hypot(mx, my) - g.R) > 6 * g.k) return;
+    let th = Math.atan2(-my, mx); if (th < 0) th += Math.PI * 2;
+    const pos = th * g.Rm;
+    let best = -1, bd = Infinity;
+    for (let i = 0; i < ring.N; i++) {
+      const d = Math.abs(((ring.x[i] - CAR / 2) - pos + L * 1.5) % L - L / 2);
+      if (d < bd) { bd = d; best = i; }
+    }
+    if (best >= 0 && bd < CAR * 1.2 && !(ring.absorber && best === ring.av)) {
+      releaseBrake(); ring.you = best; wave.active = false; drawRing(); drawWave();
+    }
+  });
+
+  // ---- ring space-time canvas ----
+  const stCv = $('st'), sctx = stCv.getContext('2d');
+  let stW = 0, stH = 0;
+  function drawAxes(c, W, H, pad, maxPos, posStep, timeLabels) {
+    c.fillStyle = tok['plot-bg']; c.fillRect(0, 0, W, H);
+    const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+    c.font = `500 11px "Overpass", "BIZ UDPGothic", sans-serif`; c.fillStyle = tok['plot-fg']; c.strokeStyle = tok['plot-grid']; c.lineWidth = 1;
+    c.textAlign = 'right'; c.textBaseline = 'middle';
+    for (let m = 0; m <= maxPos; m += posStep) {
+      const y = Math.round(pad.t + ph - m / maxPos * ph) + .5;
+      c.beginPath(); c.moveTo(pad.l, y); c.lineTo(pad.l + pw, y); c.stroke();
+      c.fillText(m + ' m', pad.l - 8, y);
+    }
+    c.textAlign = 'center'; c.textBaseline = 'top';
+    for (const { x, text } of timeLabels) {
+      if (x < pad.l - 1) continue;
+      const xx = Math.round(x) + .5;
+      c.beginPath(); c.moveTo(xx, pad.t); c.lineTo(xx, pad.t + ph); c.stroke();
+      c.fillText(text, x, pad.t + ph + 8);
+    }
+    c.save(); c.translate(13, pad.t + ph / 2); c.rotate(-Math.PI / 2);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `500 11px "BIZ UDPGothic", sans-serif`; c.fillText('位置', 0, 0); c.restore();
+    return { pw, ph };
+  }
+  function drawST() {
+    if (!stW) return;
+    const c = sctx;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const pad = { l: 66, r: 14, t: 16, b: 30 };
+    const pw0 = stW - pad.l - pad.r, colW = pw0 / HISTORY;
+    const labels = [];
+    for (let s = 0; s <= HISTORY * SAMPLE; s += 30) labels.push({ x: pad.l + pw0 - s / SAMPLE * colW, text: s === 0 ? 'いま' : `${s}秒前` });
+    const { pw, ph } = drawAxes(c, stW, stH, pad, L, 50, labels);
+    const N = ring.N, dot = Math.max(1.6, Math.min(2.6, colW * 1.4));
+    const first = (histHead - histLen + HISTORY) % HISTORY;
+    for (let b = 0; b < BINS; b++) {
+      c.fillStyle = BIN_COLORS[b];
+      for (let n = 0; n < histLen; n++) {
+        const row = (first + n) % HISTORY, xx = pad.l + pw - (histLen - 1 - n) * colW, base = row * N;
+        for (let i = 0; i < N; i++) {
+          if (hist.b[base + i] !== b || i === hist.you[row]) continue;
+          c.fillRect(xx - dot / 2, pad.t + ph - hist.x[base + i] / L * ph - dot / 2, dot, dot);
+        }
+      }
+    }
+    c.fillStyle = '#ffffff';
+    for (let n = 0; n < histLen; n++) {
+      const row = (first + n) % HISTORY, xx = pad.l + pw - (histLen - 1 - n) * colW;
+      c.fillRect(xx - dot / 2 - .4, pad.t + ph - hist.x[row * N + hist.you[row]] / L * ph - dot / 2 - .4, dot + .8, dot + .8);
+    }
+    const tNow = histLen ? hist.t[(histHead - 1 + HISTORY) % HISTORY] : ring.t;
+    c.fillStyle = tok.brake; c.textAlign = 'left'; c.textBaseline = 'top';
+    c.font = `700 11px "BIZ UDPGothic", sans-serif`;
+    for (const tb of brakeMarks) {
+      const xx = pad.l + pw - (tNow - tb) / SAMPLE * colW;
+      if (xx < pad.l) continue;
+      c.fillRect(xx - 1, pad.t - 2, 2, ph + 2);
+      c.fillText('ブレーキ', xx + 4, pad.t + 2);
+    }
+  }
+
+  // ---- wave bar chart (SVG) ----
+  function drawWave() {
+    const svg = $('wave'), W = 400, H = 220, padL = 40, padR = 8, padT = 22, padB = 34;
+    const pw = W - padL - padR, ph = H - padT - padB, vmax = 50;
+    const y = kmh => padT + ph - Math.min(vmax, kmh) / vmax * ph;
+    let out = '';
+    for (const v of [0, 10, 20, 30, 40, 50]) {
+      out += `<line class="ax" x1="${padL}" x2="${W - padR}" y1="${y(v)}" y2="${y(v)}" opacity="${v ? .55 : 1}"/>`;
+      out += `<text class="ax-text" x="${padL - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+    }
+    out += `<text class="ax-jp" x="${padL - 6}" y="10" text-anchor="end">km/h</text>`;
+    if (!wave.active) {
+      out += `<text class="empty-text" x="${padL + pw / 2}" y="${padT + ph / 2}" text-anchor="middle">ブレーキを押すと、波が届いた順に棒が並びます</text>`;
+      svg.innerHTML = out;
+      $('waveCap').textContent = 'ブレーキを押すと、ここに棒が並びはじめます。';
+      return;
+    }
+    const N = wave.N, slots = 3 * N, bw = pw / slots;
+    const yr = y(wave.vRef * 3.6);
+    out += `<line class="ref-line" x1="${padL}" x2="${W - padR}" y1="${yr}" y2="${yr}"/>`;
+    out += `<text class="ref-text" x="${W - padR}" y="${yr - 5}" text-anchor="end">ブレーキ前の速度</text>`;
+    for (let lap = 1; lap < 3; lap++) {
+      const xx = padL + lap * N * bw;
+      out += `<line class="lap-line" x1="${xx}" x2="${xx}" y1="${padT}" y2="${padT + ph}"/>`;
+    }
+    const bars = wave.events.map(e => ({ m: e.m, v: e.v * 3.6, done: true }));
+    const p = wave.pending(); if (p) bars.push({ m: p.m, v: p.v * 3.6, done: false });
+    for (const b of bars) {
+      const x0 = padL + b.m * bw + bw * 0.12, w = Math.max(1, bw * 0.76), h = Math.max(1.5, padT + ph - y(b.v));
+      out += `<rect x="${x0.toFixed(2)}" y="${(padT + ph - h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" fill="${colorAt(b.v)}" opacity="${b.done ? 1 : .45}"/>`;
+    }
+    out += `<text class="ax-jp" x="${padL}" y="${H - 14}">あなた</text>`;
+    out += `<text class="ax-jp" x="${padL + N * bw + 4}" y="${H - 14}">1周して あなた</text>`;
+    out += `<text class="ax-jp" x="${padL + 2 * N * bw + 4}" y="${H - 14}">2周</text>`;
+    out += `<text class="ax-jp" x="${W - padR}" y="${H - 1}" text-anchor="end">波が届いた順 →</text>`;
+    svg.innerHTML = out;
+
+    const ev = wave.events;
+    let cap;
+    const stops = ev.filter(e => e.v < 0.5).length;
+    if (wave.state === 'faded') cap = `減速の波は${ev.length}台目あたりで小さくなり、見分けられなくなりました。ブレーキは消えました。`;
+    else if (stops > 0) cap = `後ろへ行くほど深く減速し、止まる車が出ました（${stops}回）。小さなブレーキが渋滞に育っています。`;
+    else if (ev.length >= 6) {
+      const a = (ev[1].v + ev[2].v + ev[3].v) / 3, z = ev.slice(-3).reduce((s, e) => s + e.v, 0) / 3;
+      cap = z < a - 0.3 ? '後ろへ行くほど深く減速しています。波が育っています。'
+          : z > a + 0.3 ? '後ろへ行くほど減速が浅くなっています。波は弱まっています。'
+          : '減速の深さはほぼ同じまま、後ろへ伝わっています。';
+    } else cap = '減速の波が後ろへ伝わっています。';
+    $('waveCap').textContent = cap;
+  }
+
+  // ---- stability map (SVG) ----
+  const MAP = { W: 400, H: 240, padL: 44, padR: 10, padT: 10, padB: 40, n0: 10, n1: 36, a0: 0, a1: 3.6 };
+  const mx = n => MAP.padL + (n - MAP.n0) / (MAP.n1 - MAP.n0) * (MAP.W - MAP.padL - MAP.padR);
+  const my = a => MAP.padT + (1 - (a - MAP.a0) / (MAP.a1 - MAP.a0)) * (MAP.H - MAP.padT - MAP.padB);
+  function drawMap() {
+    const N = +$('cars').value, a = +$('sens').value;
+    const pts = [];
+    for (let n = MAP.n0; n <= MAP.n1 + 1e-9; n += 0.25) pts.push([mx(n), my(Math.max(0, Math.min(MAP.a1, criticalA(n))))]);
+    const base = my(0);
+    let out = `<path class="grow-area" d="M${pts[0][0]},${base} ${pts.map(p => `L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')} L${pts[pts.length - 1][0]},${base} Z"/>`;
+    out += `<path class="grow-edge" d="M${pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L')}"/>`;
+    for (let n = 10; n <= 34; n += 4) {
+      out += `<line class="ax" x1="${mx(n)}" x2="${mx(n)}" y1="${base}" y2="${base + 4}"/><text class="ax-text" x="${mx(n)}" y="${base + 16}" text-anchor="middle">${n}</text>`;
+    }
+    for (let v = 0; v <= 3; v++) {
+      out += `<line class="ax" x1="${MAP.padL - 4}" x2="${MAP.padL}" y1="${my(v)}" y2="${my(v)}"/><text class="ax-text" x="${MAP.padL - 8}" y="${my(v) + 4}" text-anchor="end">${v}</text>`;
+    }
+    out += `<line class="ax" x1="${MAP.padL}" x2="${MAP.W - MAP.padR}" y1="${base}" y2="${base}"/><line class="ax" x1="${MAP.padL}" x2="${MAP.padL}" y1="${MAP.padT}" y2="${base}"/>`;
+    out += `<text class="ax-jp" x="${(MAP.padL + MAP.W - MAP.padR) / 2}" y="${MAP.H - 4}" text-anchor="middle">台数（1周 230 m）</text>`;
+    out += `<text class="ax-jp" transform="translate(12 ${(MAP.padT + base) / 2}) rotate(-90)" text-anchor="middle">反応 a [1/s]</text>`;
+    out += `<line class="exp-line" x1="${mx(22)}" x2="${mx(22)}" y1="${MAP.padT}" y2="${base}"/>`;
+    out += `<text class="ax-jp" x="${mx(22) + 4}" y="${MAP.padT + 12}">2008年の実験と同じ22台</text>`;
+    out += `<text class="region-grow" x="${mx(27)}" y="${my(1.0)}" text-anchor="middle">育つ</text>`;
+    out += `<text class="region-fade" x="${mx(13)}" y="${my(2.6)}" text-anchor="middle">消える</text>`;
+    out += `<circle class="mark-ring" cx="${mx(N)}" cy="${my(a)}" r="7"/><circle class="mark-dot" cx="${mx(N)}" cy="${my(a)}" r="2.5"/>`;
+    $('map').innerHTML = out;
+    const ac = criticalA(N);
+    $('mapCap').textContent = ac > 0.5
+      ? `いまは ${N} 台・a = ${a.toFixed(1)}。この台数では a が ${ac.toFixed(2)} より小さいと育ちます。`
+      : `いまは ${N} 台・a = ${a.toFixed(1)}。この台数なら、反応がのんびりでも消えます。`;
+  }
+  $('map').addEventListener('click', e => {
+    const svg = $('map'), pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const n = Math.round(MAP.n0 + (q.x - MAP.padL) / (MAP.W - MAP.padL - MAP.padR) * (MAP.n1 - MAP.n0));
+    const a = MAP.a0 + (1 - (q.y - MAP.padT) / (MAP.H - MAP.padT - MAP.padB)) * (MAP.a1 - MAP.a0);
+    const cars = $('cars'), sens = $('sens');
+    const nn = Math.max(+cars.min, Math.min(+cars.max, n)), aa = Math.max(+sens.min, Math.min(+sens.max, Math.round(a * 10) / 10));
+    sens.value = aa; ring.a = aa;
+    if (nn !== +cars.value) { cars.value = nn; updateLabels(); restart(); } else updateLabels();
+  });
+
+  // ---- V(s) figure (SVG) ----
+  function drawVfig() {
+    const W = 440, H = 240, padL = 46, padR = 14, padT = 12, padB = 40, smax = 20, vmax = 50;
+    const fx = s => padL + s / smax * (W - padL - padR), fy = kmh => padT + (1 - kmh / vmax) * (H - padT - padB);
+    let out = '';
+    for (const v of [0, 10, 20, 30, 40, 50]) out += `<line class="ax" x1="${padL}" x2="${W - padR}" y1="${fy(v)}" y2="${fy(v)}" opacity="${v ? .5 : 1}"/><text class="ax-text" x="${padL - 6}" y="${fy(v) + 4}" text-anchor="end">${v}</text>`;
+    for (let s = 0; s <= smax; s += 5) out += `<text class="ax-text" x="${fx(s)}" y="${H - padB + 16}" text-anchor="middle">${s}</text>`;
+    out += `<text class="ax-jp" x="${(padL + W - padR) / 2}" y="${H - 4}" text-anchor="middle">車間 s [m]</text>`;
+    out += `<text class="ax-jp" transform="translate(12 ${(padT + H - padB) / 2}) rotate(-90)" text-anchor="middle">出したい速度 [km/h]</text>`;
+    let d = '';
+    for (let s = 0; s <= smax + 1e-9; s += 0.1) d += `${d ? 'L' : 'M'}${fx(s).toFixed(1)},${fy(optimalSpeed(s) * 3.6).toFixed(1)} `;
+    out += `<path class="curve" d="${d}"/>`;
+    const N = +$('cars').value, s0 = equilibriumGap(N), v0 = optimalSpeed(s0) * 3.6, sl = optimalSlope(s0) * 3.6;
+    const sA = Math.max(0, s0 - 3), sB = Math.min(smax, s0 + 3);
+    out += `<path class="tangent" d="M${fx(sA)},${fy(v0 + sl * (sA - s0))} L${fx(sB)},${fy(v0 + sl * (sB - s0))}"/>`;
+    out += `<circle class="mark-ring" cx="${fx(s0)}" cy="${fy(v0)}" r="6"/>`;
+    const lx = fx(s0) + 10, ly = fy(v0) + 22;
+    out += `<text class="ref-text" x="${lx}" y="${ly}">${N}台：車間 ${s0.toFixed(1)} m・時速 ${v0.toFixed(0)} km</text>`;
+    out += `<text class="ref-text" x="${lx}" y="${ly + 15}">傾き V′ = ${(sl / 3.6).toFixed(2)} /s</text>`;
+    $('vfig').innerHTML = out;
+  }
+
+  // ---- Bode-style gain plot (SVG) ----
+  function drawBode() {
+    const N = +$('cars').value, a = +$('sens').value, Vp = optimalSlope(equilibriumGap(N));
+    const W = 460, padL = 52, padR = 14, w0 = -2, w1 = 1;
+    const top = { y0: 14, y1: 124, lo: 0.7, hi: 1.3 }, bot = { y0: 158, y1: 300, lo: -40, hi: 45 };
+    const fx = w => padL + (Math.log10(w) - w0) / (w1 - w0) * (W - padL - padR);
+    const fy = (p, v) => Math.max(p.y0 - 40, Math.min(p.y1 + 40, p.y0 + (1 - (v - p.lo) / (p.hi - p.lo)) * (p.y1 - p.y0)));
+    const wc2 = 2 * a * Vp - a * a - 2 * a * LAM;
+    let out = `<defs><clipPath id="clipTop"><rect x="${padL}" y="${top.y0}" width="${W - padL - padR}" height="${top.y1 - top.y0}"/></clipPath><clipPath id="clipBot"><rect x="${padL}" y="${bot.y0}" width="${W - padL - padR}" height="${bot.y1 - bot.y0}"/></clipPath></defs>`;
+    if (wc2 > 0) {
+      const xb = fx(Math.min(10 ** w1, Math.sqrt(wc2)));
+      out += `<rect class="band" x="${padL}" y="${top.y0}" width="${xb - padL}" height="${top.y1 - top.y0}"/>`;
+      out += `<rect class="band" x="${padL}" y="${bot.y0}" width="${xb - padL}" height="${bot.y1 - bot.y0}"/>`;
+    }
+    for (const v of [0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3]) {
+      out += `<line class="ax" x1="${padL}" x2="${W - padR}" y1="${fy(top, v)}" y2="${fy(top, v)}" opacity="${v === 1 ? 1 : .45}"/>`;
+      out += `<text class="ax-text" x="${padL - 6}" y="${fy(top, v) + 4}" text-anchor="end">${v.toFixed(1)}</text>`;
+    }
+    for (const v of [-40, -20, 0, 20, 40]) {
+      out += `<line class="ax" x1="${padL}" x2="${W - padR}" y1="${fy(bot, v)}" y2="${fy(bot, v)}" opacity="${v === 0 ? 1 : .45}"/>`;
+      out += `<text class="ax-text" x="${padL - 6}" y="${fy(bot, v) + 4}" text-anchor="end">${v > 0 ? '+' : ''}${v}</text>`;
+    }
+    for (let e = w0; e <= w1; e++) {
+      const xx = fx(10 ** e);
+      out += `<line class="ax" x1="${xx}" x2="${xx}" y1="${top.y0}" y2="${bot.y1}" opacity=".45"/>`;
+      out += `<text class="ax-text" x="${xx}" y="${bot.y1 + 15}" text-anchor="middle">${10 ** e}</text>`;
+      out += `<text class="ax-jp" x="${xx}" y="${bot.y1 + 29}" text-anchor="middle">${(2 * Math.PI / 10 ** e).toFixed(e < 0 ? 0 : 1)} 秒</text>`;
+    }
+    out += `<text class="ax-jp" x="${W - padR}" y="${bot.y1 + 44}" text-anchor="end">角周波数 ω [rad/s]（下段は周期）</text>`;
+    out += `<text class="ax-jp" x="${padL + 4}" y="${top.y0 + 12}">1台あたり |G(jω)|（倍）</text>`;
+    out += `<text class="ax-jp" x="${padL + 4}" y="${bot.y0 + 12}">${N}台通過後（dB）</text>`;
+    let dTop = '', dN = '', dAv = '';
+    for (let lw = w0; lw <= w1 + 1e-9; lw += 0.01) {
+      const w = 10 ** lw, g = gainG(a, Vp, w);
+      const x = fx(w).toFixed(1);
+      dTop += `${dTop ? 'L' : 'M'}${x},${fy(top, g).toFixed(1)} `;
+      dN += `${dN ? 'L' : 'M'}${x},${fy(bot, 20 * N * Math.log10(g)).toFixed(1)} `;
+      dAv += `${dAv ? 'L' : 'M'}${x},${fy(bot, 20 * ((N - 1) * Math.log10(g) + Math.log10(gainAV(w)))).toFixed(1)} `;
+    }
+    out += `<path class="curve" d="${dTop}" clip-path="url(#clipTop)"/>`;
+    out += `<path class="curve-n" d="${dN}" clip-path="url(#clipBot)"/>`;
+    out += `<path class="curve-av" d="${dAv}" clip-path="url(#clipBot)"/>`;
+    const lx = W - padR - 130, ly = bot.y0 + 16;
+    out += `<line class="curve-n" x1="${lx}" x2="${lx + 22}" y1="${ly}" y2="${ly}"/><text class="ref-text" x="${lx + 28}" y="${ly + 4}">|G|<tspan dy="-5" font-size="8">${N}</tspan></text>`;
+    out += `<line class="curve-av" x1="${lx}" x2="${lx + 22}" y1="${ly + 18}" y2="${ly + 18}"/><text class="ref-text" x="${lx + 28}" y="${ly + 22}">1台を吸収車に</text>`;
+    $('bode').innerHTML = out;
+  }
+
+  // ---- ring readouts ----
+  function updateReadouts() {
+    let sum = 0, stopped = 0;
+    for (let i = 0; i < ring.N; i++) { sum += ring.v[i]; if (ring.v[i] < 0.5) stopped++; }
+    $('hubSpeed').textContent = (sum / ring.N * 3.6).toFixed(1);
+    $('hubStopped').textContent = stopped;
+    const hj = $('hubJam');
+    if (jam.speed !== null && jam.speed < -0.3) {
+      const kmh = (-jam.speed * 3.6).toFixed(0);
+      hj.dataset.on = 'true'; hj.innerHTML = `渋滞は後ろへ 時速 <b>${kmh}</b> km`;
+      $('liveJam').textContent = `時速 ${kmh} km 前後`;
+      $('liveJam2').textContent = `時速 ${kmh} km 前後`;
+    } else {
+      hj.dataset.on = 'false'; hj.textContent = '渋滞の動き —';
+    }
+    const el = Math.max(0, ring.t - tStart), mm = Math.floor(el / 60), ss = Math.floor(el % 60);
+    $('clock').textContent = `経過 ${mm}:${String(ss).padStart(2, '0')}`;
+  }
+
+  function renderAll() {
+    drawRing();
+    if (stDirty) { drawST(); stDirty = false; }
+    drawWave();
+    updateReadouts();
+  }
+
+  // ===================================================================
+  // Experiment 2: sag road
+  // ===================================================================
+  const road = new Road();
+  const R_SAMPLE = 0.5, R_HIST = 2400, R_MAXC = 420;
+  const rh = { x: new Float32Array(R_HIST * R_MAXC), b: new Uint8Array(R_HIST * R_MAXC), n: new Uint16Array(R_HIST), len: 0, head: 0 };
+  let rRunning = !reduceMotion, rSpeed = 4, rNext = 0;
+  const roadCv = $('road'), roadCtx = roadCv.getContext('2d');
+  const rstCv = $('rst'), rstCtx = rstCv.getContext('2d');
+  const rBuf = document.createElement('canvas'), rBufCtx = rBuf.getContext('2d');
+  let roadW = 0, roadH = 0, rstW = 0, rstH = 0;
+  const RPAD = { l: 66, r: 14, t: 16, b: 30 };
+
+  function rRecord() {
+    const row = rh.head, n = Math.min(R_MAXC, road.x.length), base = row * R_MAXC;
+    for (let i = 0; i < n; i++) { rh.x[base + i] = road.x[i]; rh.b[base + i] = binOf(road.v[i]); }
+    rh.n[row] = n;
+    rh.head = (rh.head + 1) % R_HIST; rh.len = Math.min(R_HIST, rh.len + 1);
+    drawRoadColumn(row, rstPlot().pw - 1, true);
+  }
+  function rstPlot() { return { pw: Math.max(1, Math.floor(rstW - RPAD.l - RPAD.r)), ph: Math.max(1, rstH - RPAD.t - RPAD.b) }; }
+  function drawRoadColumn(row, col, shift) {
+    if (!rBuf.width || !rBuf.height) return;
+    const ph = rBuf.height, c = rBufCtx;
+    if (shift) {
+      c.globalCompositeOperation = 'copy';
+      c.drawImage(rBuf, -1, 0);
+      c.globalCompositeOperation = 'source-over';
+    }
+    c.clearRect(col, 0, 1, ph);
+    const n = rh.n[row], base = row * R_MAXC;
+    for (let i = 0; i < n; i++) {
+      c.fillStyle = BIN_COLORS[rh.b[base + i]];
+      c.fillRect(col, ph - rh.x[base + i] / LR * ph - 1, 1, 2);
+    }
+  }
+  function rebuildRoadST() {
+    if (!rstW) return;
+    const { pw, ph } = rstPlot();
+    rBuf.width = pw; rBuf.height = Math.round(ph);
+    const k = Math.min(pw, rh.len);
+    for (let j = 0; j < k; j++) {
+      const row = (rh.head - k + j + R_HIST) % R_HIST;
+      drawRoadColumn(row, pw - k + j, false);
+    }
+  }
+  function drawRoadST() {
+    if (!rstW) return;
+    const c = rstCtx;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const { pw } = rstPlot();
+    const labels = [];
+    for (let s = 0; s * 2 <= pw; s += 60) labels.push({ x: RPAD.l + pw - s / R_SAMPLE, text: s === 0 ? 'いま' : `${s / 60}分前` });
+    const { ph } = drawAxes(c, rstW, rstH, RPAD, LR, 500, labels);
+    if (road.sag) {
+      const yTop = RPAD.t + ph - (SAG0 + SAGL) / LR * ph, yBot = RPAD.t + ph - SAG0 / LR * ph, yMid = RPAD.t + ph - (SAG0 + SAGL / 2) / LR * ph;
+      c.fillStyle = tok['plot-band']; c.fillRect(RPAD.l, yTop, pw, yBot - yTop);
+      c.strokeStyle = tok['plot-fg']; c.globalAlpha = .35; c.setLineDash([3, 4]);
+      c.beginPath(); c.moveTo(RPAD.l, Math.round(yMid) + .5); c.lineTo(RPAD.l + pw, Math.round(yMid) + .5); c.stroke();
+      c.setLineDash([]); c.globalAlpha = 1;
+    }
+    if (rBuf.width && rBuf.height) c.drawImage(rBuf, RPAD.l, RPAD.t, pw, ph);
+    if (road.sag) {
+      const yAt = x => RPAD.t + ph - x / LR * ph;
+      c.font = `700 11px "BIZ UDPGothic", sans-serif`; c.fillStyle = tok['plot-fg']; c.textAlign = 'left'; c.textBaseline = 'middle';
+      c.fillText('上り坂', RPAD.l + 6, yAt(SAG0 + SAGL * 0.75));
+      c.fillText('下り坂', RPAD.l + 6, yAt(SAG0 + SAGL * 0.25));
+    }
+  }
+
+  function drawRoadProfile() {
+    if (!roadW) return;
+    const c = roadCtx, W = roadW, H = roadH;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+    const padL = 18, padR = 18, top = 34, bottom = 30;
+    const plotH = H - top - bottom, pxm = (W - padL - padR) / LR;
+    const dip = road.sag ? plotH * 0.5 : 0, y0 = top + plotH * 0.3;
+    const hMin = THETA * SAGL / Math.PI;
+    const X = x => padL + x * pxm;
+    const Y = x => y0 - (road.sag ? sagHeight(x) / hMin * dip : 0);
+    // ground
+    c.beginPath(); c.moveTo(X(0), H);
+    for (let x = 0; x <= LR; x += 10) c.lineTo(X(x), Y(x) + 3);
+    c.lineTo(X(LR), H); c.closePath(); c.fillStyle = tok.terrain; c.fill();
+    // road
+    c.beginPath();
+    for (let x = 0; x <= LR; x += 10) x ? c.lineTo(X(x), Y(x)) : c.moveTo(X(x), Y(x));
+    c.strokeStyle = tok.asphalt; c.lineWidth = 5; c.stroke();
+    // cars
+    const r = Math.max(1.6, Math.min(3, (CAR + 4) * pxm * 0.45));
+    for (let i = 0; i < road.x.length; i++) {
+      const xc = road.x[i] - CAR / 2;
+      c.fillStyle = colorAt(road.v[i] * 3.6);
+      c.beginPath(); c.arc(X(xc), Y(xc) - 2.5 - r, r, 0, Math.PI * 2); c.fill();
+    }
+    // labels
+    c.font = `500 11px "Overpass", "BIZ UDPGothic", sans-serif`; c.fillStyle = tok.muted; c.textAlign = 'center'; c.textBaseline = 'top';
+    for (let m = 0; m <= LR; m += 500) c.fillText(m === LR ? `${m} m` : `${m}`, Math.min(W - 22, Math.max(12, X(m))), H - bottom + 10);
+    c.font = `700 12px "BIZ UDPGothic", sans-serif`; c.fillStyle = tok.fg; c.textBaseline = 'bottom';
+    c.textAlign = 'left'; c.fillText('入口 →', X(0), top - 8);
+    c.textAlign = 'right'; c.fillText('出口', X(LR), top - 8);
+    if (road.sag) {
+      c.textAlign = 'center';
+      c.fillText('下り 4%', X(SAG0 + SAGL * 0.25), y0 - 14);
+      c.fillText('上り 4%', X(SAG0 + SAGL * 0.75), y0 - 14);
+      c.textBaseline = 'top'; c.fillStyle = tok.muted; c.font = `500 11px "BIZ UDPGothic", sans-serif`;
+      c.fillText('サグの底', X(SAG0 + SAGL / 2), Y(SAG0 + SAGL / 2) + 8);
+      c.textAlign = 'right'; c.textBaseline = 'bottom';
+      c.fillText('高さは誇張しています', X(LR), H - bottom + 2);
+    } else {
+      c.textAlign = 'center'; c.fillStyle = tok.muted; c.font = `500 11px "BIZ UDPGothic", sans-serif`;
+      c.fillText('坂なし（比較用）', X(SAG0 + SAGL / 2), y0 - 12);
+    }
+    // detector
+    c.strokeStyle = tok.muted; c.lineWidth = 1; c.setLineDash([2, 3]);
+    c.beginPath(); c.moveTo(X(DETECT), top); c.lineTo(X(DETECT), Y(DETECT) + 8); c.stroke(); c.setLineDash([]);
+  }
+
+  function updateRoadReadouts() {
+    $('chipIn').innerHTML = `${Math.round(road.f * 100)}<small>%</small>`;
+    const out = road.outflow();
+    $('chipOut').innerHTML = out === null ? '—' : `${Math.round(out * 100)}<small>%</small>`;
+    $('chipOutBox').dataset.alert = String(out !== null && out < road.f - 0.04);
+    const w = road.waiting();
+    $('chipWait').innerHTML = `${w}<small>台</small>`;
+    $('chipWaitBox').dataset.alert = String(w >= 3);
+    const st = road.stopped();
+    $('chipStop').innerHTML = `${st}<small>台</small>`;
+    $('chipStopBox').dataset.alert = String(st > 0);
+    const el = road.t, mm = Math.floor(el / 60), ss = Math.floor(el % 60);
+    $('rclock').textContent = `経過 ${mm}:${String(ss).padStart(2, '0')}`;
+  }
+  function updateRoadLabels() {
+    const f = +$('demand').value / 100, ds = +$('dgap').value;
+    const capUp = capacityOf(ds, GRADE_OFFSET) / Q_MAX;
+    $('demandOut').textContent = `${Math.round(f * 100)} %`;
+    $('dgapOut').textContent = `${ds.toFixed(1)} m`;
+    $('capUpText').textContent = road.sag ? `上り坂で流せる量は ${Math.round(capUp * 100)} %` : '坂なしでは効きません';
+    $('liveCapUp').textContent = `Δs = ${ds.toFixed(1)} m → 平坦な道の ${Math.round(capUp * 100)} %`;
+    $('liveOffset').textContent = `${GRADE_OFFSET.toFixed(2)} m/s（${(GRADE_OFFSET * 3.6).toFixed(1)} km/h）`;
+    drawFlow(f, road.sag ? capUp : 1);
+  }
+  // In, through and backlog at the sag, as shares of the flat-road capacity.
+  function drawFlow(f, cap) {
+    const x0 = 150, x1 = 440, vmax = 1.1, rowH = 34, top = 30;
+    const fx = v => x0 + Math.min(vmax, v) / vmax * (x1 - x0);
+    const over = Math.max(0, f - cap);
+    const rows = [
+      ['来る量', f, 'flow-in'],
+      [road.sag ? '上り坂で通れる量' : '通れる量（坂なし）', cap, 'flow-cap'],
+      ['あふれてたまる量', over, 'flow-over'],
+    ];
+    let out = `<line class="ref-line" x1="${fx(1)}" x2="${fx(1)}" y1="${top - 10}" y2="${top + rows.length * rowH - 8}"/>`;
+    out += `<text class="ref-text" x="${fx(1) + 4}" y="${top - 14}" text-anchor="end">平坦な道で流せる最大</text>`;
+    rows.forEach(([name, v, cls], i) => {
+      const y = top + i * rowH, w = v > 0 ? Math.max(2, fx(v) - x0) : 0;
+      out += `<text class="ax-jp" x="${x0 - 10}" y="${y + 15}" text-anchor="end">${name}</text>`;
+      out += `<rect class="${cls}" x="${x0}" y="${y + 2}" width="${w.toFixed(1)}" height="18" rx="3"/>`;
+      out += `<text class="flow-val" x="${(x0 + w + 6).toFixed(1)}" y="${y + 15}">${Math.round(v * 100)} %</text>`;
+    });
+    $('flowfig').innerHTML = out;
+    $('flowCap').textContent = over > 0.005
+      ? `いまは来る量が通れる量を ${Math.round(over * 100)} % 上回っています。あふれた分、1分あたり約 ${(over * Q_MAX * 60).toFixed(1)} 台がサグの手前にたまり、たまった所で止まる波が生まれます。値は実験2の「交通量」「Δs」「坂をなくす」に連動します（100 % が平坦な道で流せる最大の量）。`
+      : 'いまは来る量が通れる量以下なので、車はたまらずに流れます。値は実験2の「交通量」「Δs」「坂をなくす」に連動します（100 % が平坦な道で流せる最大の量）。';
+  }
+  function renderRoad() { drawRoadProfile(); drawRoadST(); updateRoadReadouts(); }
+  function roadAdvance(dt) {
+    road.step(dt);
+    if (road.t >= rNext) { rRecord(); rNext += R_SAMPLE; }
+  }
+  function roadRestart() {
+    road.setDemand(+$('demand').value / 100);
+    road.ds = +$('dgap').value;
+    road.sag = !$('flat').checked;
+    road.reset();
+    rh.len = 0; rh.head = 0; rNext = 0;
+    rBufCtx.setTransform(1, 0, 0, 1, 0, 0); rBufCtx.clearRect(0, 0, rBuf.width, rBuf.height);
+    while (road.t < 30) roadAdvance(DT);
+    renderRoad();
+  }
+  function setRoadRunning(on) { rRunning = on; $('rplay').textContent = on ? '一時停止' : '再生'; }
+  $('rplay').addEventListener('click', () => setRoadRunning(!rRunning));
+  $('rreset').addEventListener('click', roadRestart);
+  document.querySelectorAll('input[name="rspd"]').forEach(r => r.addEventListener('change', () => { rSpeed = +r.value; }));
+  $('demand').addEventListener('input', () => { road.setDemand(+$('demand').value / 100); updateRoadLabels(); updateRoadReadouts(); });
+  $('dgap').addEventListener('input', () => { road.ds = +$('dgap').value; updateRoadLabels(); });
+  $('flat').addEventListener('change', () => { road.sag = !$('flat').checked; updateRoadLabels(); renderRoad(); });
+
+  // ===================================================================
+  // loop, visibility and sizing
+  // ===================================================================
+  const visible = { exp1: true, exp2: false };
+  const io = new IntersectionObserver(entries => { for (const e of entries) visible[e.target.id] = e.isIntersecting; }, { rootMargin: '80px' });
+  io.observe($('exp1')); io.observe($('exp2'));
+
+  let last = null, acc1 = 0, acc2 = 0, tick1 = 0, tick2 = 0;
+  function frame(ts) {
+    if (last === null) last = ts;
+    const real = Math.min(0.1, (ts - last) / 1000); last = ts;
+    if (running && visible.exp1) {
+      acc1 += real * speedMul;
+      while (acc1 >= DT) { advance(DT); acc1 -= DT; }
+      drawRing();
+      if (stDirty) { drawST(); stDirty = false; }
+      tick1 += real;
+      if (tick1 > 0.25) { drawWave(); updateReadouts(); tick1 = 0; }
+    }
+    if (rRunning && visible.exp2) {
+      acc2 += real * rSpeed;
+      while (acc2 >= DT) { roadAdvance(DT); acc2 -= DT; }
+      drawRoadProfile(); drawRoadST();
+      tick2 += real;
+      if (tick2 > 0.25) { updateRoadReadouts(); tick2 = 0; }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  const ro = new ResizeObserver(() => {
+    ringSize = ringCv.parentElement.clientWidth; sizeCanvas(ringCv, ringSize, ringSize);
+    const sp = stCv.parentElement; stW = sp.clientWidth; stH = sp.clientHeight; sizeCanvas(stCv, stW, stH);
+    const rp = roadCv.parentElement; roadW = rp.clientWidth; roadH = rp.clientHeight; sizeCanvas(roadCv, roadW, roadH);
+    const rs = rstCv.parentElement; rstW = rs.clientWidth; rstH = rs.clientHeight; sizeCanvas(rstCv, rstW, rstH);
+    rebuildRoadST();
+    stDirty = true; renderAll(); renderRoad();
+  });
+  [ringCv, stCv, roadCv, rstCv].forEach(cv => ro.observe(cv.parentElement));
+
+  // ---- "later and deeper": a fresh 22-car ring, 1.5 s brake, speeds of five cars ----
+  function drawDipFigure() {
+    const picks = [0, 1, 7, 14, 21], names = ['あなた', '1台後ろ', '7台後ろ', '14台後ろ', '21台後ろ'];
+    const r = new Ring(22); r.a = 1.5;
+    const pre = Math.round(2 / DT), settle = Math.round(40 / DT), post = Math.round(20 / DT);
+    for (let k = 0; k < settle - pre; k++) r.step(DT);
+    const series = picks.map(() => []);
+    const rec = t => picks.forEach((c, j) => series[j].push([t, r.v[(r.N - c) % r.N] * 3.6]));
+    for (let k = -pre; k < 0; k++) { rec(k * DT); r.step(DT); }
+    r.brakeUntil = r.t + TAP_BRAKE;
+    for (let k = 0; k <= post; k++) { rec(k * DT); r.step(DT); }
+    const v0 = series[0][0][1];
+    const dipAfter = (s, from) => {
+      for (let i = 1; i < s.length - 1; i++) {
+        const [t, v] = s[i];
+        if (t > from && v < s[i - 1][1] && v <= s[i + 1][1] && v < v0 - 0.5) return { t, v };
+      }
+      return null;
+    };
+    const dips = series.map(s => dipAfter(s, 0));
+    const again = dips[0] ? dipAfter(series[0], dips[0].t + 3) : null;
+
+    const W = 460, H = 250, padL = 44, padR = 12, padT = 14, padB = 40, t0 = -2, t1 = 20, vmax = 35;
+    const fx = t => padL + (t - t0) / (t1 - t0) * (W - padL - padR);
+    const fy = v => padT + (1 - v / vmax) * (H - padT - padB);
+    let out = `<rect class="band" x="${fx(0)}" y="${padT}" width="${fx(TAP_BRAKE) - fx(0)}" height="${H - padT - padB}"/>`;
+    out += `<text class="ref-text" x="${fx(0) + 4}" y="${padT + 12}">ブレーキ</text>`;
+    for (const v of [0, 10, 20, 30]) out += `<line class="ax" x1="${padL}" x2="${W - padR}" y1="${fy(v)}" y2="${fy(v)}" opacity="${v ? .5 : 1}"/><text class="ax-text" x="${padL - 6}" y="${fy(v) + 4}" text-anchor="end">${v}</text>`;
+    for (let t = 0; t <= t1; t += 5) out += `<text class="ax-text" x="${fx(t)}" y="${H - padB + 16}" text-anchor="middle">${t}</text>`;
+    out += `<text class="ax-jp" x="${(padL + W - padR) / 2}" y="${H - 4}" text-anchor="middle">ブレーキを踏んでからの時間 [秒]</text>`;
+    out += `<text class="ax-jp" transform="translate(12 ${(padT + H - padB) / 2}) rotate(-90)" text-anchor="middle">速度 [km/h]</text>`;
+    series.forEach((s, j) => {
+      out += `<path class="ln ln${j}" d="${s.map(([t, v], i) => `${i ? 'L' : 'M'}${fx(t).toFixed(1)},${fy(v).toFixed(1)}`).join(' ')}"/>`;
+    });
+    dips.forEach((d, j) => { if (d) out += `<circle class="dm ln${j}" cx="${fx(d.t).toFixed(1)}" cy="${fy(d.v).toFixed(1)}" r="3.6"/>`; });
+    $('dipfig').innerHTML = out;
+    $('dipKeys').innerHTML = picks.map((_, j) => `<li><span class="sw sw${j}"></span>${names[j]}${dips[j] ? `（最低 ${dips[j].v.toFixed(1)} km/h・${dips[j].t.toFixed(1)} 秒後）` : ''}</li>`).join('');
+    const d0 = dips[0], d1 = dips[1], dl = dips[4];
+    if (!d0 || !d1 || !dl) return;
+    const perCar = (dl.t - d1.t) / (picks[4] - picks[1]);
+    $('dipText').textContent = `あなたは時速 ${v0.toFixed(0)} km から ${d0.v.toFixed(1)} km まで減速しました。すぐ後ろの車は、急な変化が少しならされて ${d1.v.toFixed(1)} km までしか落ちません。それでも、そこから後ろへ行くほど減速は深くなり、21台後ろ（一周してあなたのすぐ前にいる車）では ${dl.v.toFixed(1)} km まで落ちます。減速の波は1台あたり約 ${perCar.toFixed(2)} 秒で後ろへ進みます。`
+      + (again ? `あなたの線が ${again.t.toFixed(0)} 秒ごろにもう一度下がる（${again.v.toFixed(1)} km/h）のは、波が一周して戻ってきたからです。` : '')
+      + '周回を重ねるうちに減速はさらに深くなり、やがて止まる車が出ます。実験1の棒グラフはこの続きです。速い変化は1台ごとに弱まり、ゆっくりした変化は強まる、という性質は後半の「制御系として見る」で式にします。';
+  }
+
+  readTokens();
+  drawDipFigure();
+  updateLabels();
+  restart();
+  setRunning(running);
+  updateRoadLabels();
+  roadRestart();
+  setRoadRunning(rRunning);
+  document.fonts?.ready.then(() => { stDirty = true; renderAll(); renderRoad(); });
+  requestAnimationFrame(frame);
+})();
+</script>

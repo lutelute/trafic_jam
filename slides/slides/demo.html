@@ -1,0 +1,38 @@
+<section id="demo" data-transition="fade" style="background:#1B2128;color:#F1F3F4;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;font-weight:700;color:#EF6A5F;letter-spacing:3px">しくみ</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2;color:#F1F3F4">同じ条件をモデルで動かす</h2>
+<x-embed style="position:absolute;left:128px;top:316px;width:624px;height:624px"><!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;overflow:hidden;background:transparent"><canvas id="c" width="1248" height="1248" style="width:624px;height:624px;display:block"></canvas><script>
+const L=230,C=4,S0=1.5,VM=13.5,SC=3.5,W=4,LA=0.4,TH=Math.tanh(SC/W),N=22,AA=1.5,B0=6,B1=7.5;
+const V=s=>{const q=s-S0;return q<=0?0:VM*(Math.tanh((q-SC)/W)+TH)/(1+TH)};
+const ST=[[0,[179,38,30]],[8,[226,88,26]],[18,[238,166,20]],[28,[88,166,104]],[40,[47,143,174]],[48,[62,118,196]]];
+function col(k){k=Math.max(0,Math.min(48,k));for(let i=1;i<ST.length;i++)if(k<=ST[i][0]){const a=ST[i-1][0],c0=ST[i-1][1],b=ST[i][0],c1=ST[i][1],f=(k-a)/(b-a);return'rgb('+c0.map((c,n)=>Math.round(c+(c1[n]-c)*f)).join(',')+')'}return'rgb(62,118,196)'}
+let x,v,ac,t;
+function reset(){x=[];v=[];ac=[];t=0;const v0=V(L/N-C);for(let i=0;i<N;i++){x.push(i*L/N);v.push(v0);ac.push(0)}}
+function step(dt){for(let i=0;i<N;i++){const j=(i+1)%N;let s=x[j]-x[i];if(s<0)s+=L;s-=C;let A=AA*(V(s)-v[i])+LA*(v[j]-v[i]);if(i===0&&t>B0&&t<B1)A=Math.min(A,-3);if(v[i]>v[j]){const nd=(v[i]*v[i]-v[j]*v[j])/(2*Math.max(s-.8,.1));A=Math.min(A,3-2*nd)}if(s<S0)A=Math.min(A,-v[i]/.4);ac[i]=Math.max(-9,Math.min(3,A))}for(let i=0;i<N;i++){v[i]=Math.max(0,v[i]+ac[i]*dt);x[i]=(x[i]+v[i]*dt)%L}t+=dt}
+const cv=document.getElementById('c'),g=cv.getContext('2d');g.scale(2,2);
+const S=624,cx=312,cy=312,R=232,Rm=L/(2*Math.PI),k=R/Rm,F='"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif';
+function draw(){g.clearRect(0,0,S,S);g.lineWidth=3.8*k;g.strokeStyle='#3A424D';g.beginPath();g.arc(cx,cy,R,0,7);g.stroke();
+g.lineWidth=1.5;g.strokeStyle='rgba(223,228,233,.55)';for(const r of[R-1.55*k,R+1.55*k]){g.beginPath();g.arc(cx,cy,r,0,7);g.stroke()}
+const ln=C*k*.92,wd=1.9*k;let sum=0,stop=0;
+for(let i=0;i<N;i++){sum+=v[i];if(v[i]<.5)stop++;const th=(x[i]-C/2)/Rm;g.save();g.translate(cx+R*Math.cos(th),cy-R*Math.sin(th));g.rotate(Math.atan2(-Math.cos(th),-Math.sin(th)));g.fillStyle=col(v[i]*3.6);g.fillRect(-ln/2,-wd/2,ln,wd);
+const lit=ac[i]<-.8||(i===0&&t>B0&&t<B1);g.fillStyle=lit?'#ff3b30':'#5a1a16';if(lit){g.shadowColor='#ff2a1f';g.shadowBlur=16}g.fillRect(-ln/2-1,-wd/2,5,wd*.32);g.fillRect(-ln/2-1,wd/2-wd*.32,5,wd*.32);g.shadowBlur=0;
+if(i===0){g.strokeStyle='#F1F3F4';g.lineWidth=3;g.strokeRect(-ln/2-5,-wd/2-5,ln+10,wd+10)}g.restore()}
+g.textAlign='center';g.textBaseline='middle';g.fillStyle='#F1F3F4';g.font='800 84px '+F;g.fillText((sum/N*3.6).toFixed(1),cx,cy-30);
+g.font='26px '+F;g.fillStyle='#B8C2CC';g.fillText('km/h　平均速度',cx,cy+32);g.fillStyle=stop?'#EF6A5F':'#B8C2CC';g.fillText('止まっている車 '+stop+' 台',cx,cy+74);
+g.fillStyle='#B8C2CC';g.font='24px '+F;g.fillText('経過 '+Math.floor(t)+' 秒',cx,cy+116);
+if(t>B0&&t<B1+1){g.fillStyle='#EF6A5F';g.font='700 30px '+F;g.fillText('ブレーキ！',cx,cy-112)}}
+let last=null;function loop(ts){if(last===null)last=ts;let dt=Math.min(.1,(ts-last)/1000)*2.5;last=ts;while(dt>1e-9){const h=Math.min(.05,dt);step(h);dt-=h}if(t>150)reset();draw();requestAnimationFrame(loop)}
+reset();draw();requestAnimationFrame(loop);
+</script></body></html></x-embed>
+<div style="position:absolute;left:832px;top:316px;width:960px;display:flex;flex-direction:column;gap:28px">
+<h3 style="font-size:40px;font-weight:700;color:#F1F3F4">見るところ</h3>
+<ol style="font-size:32px;line-height:1.6;color:#DCE2E7">
+<li>白枠の車が、6秒後に1.5秒だけブレーキを踏む</li>
+<li>赤く光るブレーキランプが、後ろの車へ移っていく</li>
+<li>40秒ほどで、止まる車が出る</li>
+<li>止まっている場所が、後ろへ動いていく</li>
+</ol>
+<p style="font-size:24px;line-height:1.5;color:#8F9AA5">モデル：22台・1周230m・反応 a = 1.5 /s。2.5倍速で表示し、150秒ごとに最初から繰り返します。</p>
+</div>
+<aside>ここで動いているのは、後で説明する式そのものです。条件は実験と同じ22台・230m。白枠の車が一度だけ、1.5秒ブレーキを踏みます。ブレーキランプの赤い光が後ろの車へ移っていくのを見てください。40秒ほどで止まる車が出て、その止まっている場所が後ろへ動いていきます。</aside>
+</section>

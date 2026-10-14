@@ -1,0 +1,23 @@
+<section id="equations" data-transition="fade" style="background:#F1F3F4;color:#1B2128;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;font-weight:700;color:#B8322A;letter-spacing:3px">モデル化 2</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2">車は積分器、運転者は制御器</h2>
+<div style="display:flex;gap:32px">
+<div style="flex:0.8;display:flex;flex-direction:column;gap:20px;background:#DFECF2;border-radius:16px;padding:40px 44px">
+<h3 style="font-size:36px;font-weight:700">車（制御対象）</h3>
+<p style="font-family:'Times New Roman', serif;font-size:46px;font-style:italic;line-height:1.4">dx/dt = v<br>dv/dt = u + d</p>
+<p style="font-size:28px;line-height:1.6;color:#3E4852">加速度 <i>u</i> を指令すると速度が変わり、速度で位置が変わる。積分器が2つ。<i>d</i> は坂などの外乱。</p>
+</div>
+<div style="flex:1.2;display:flex;flex-direction:column;gap:20px;background:#F6DCD2;border-radius:16px;padding:40px 44px">
+<h3 style="font-size:36px;font-weight:700">運転者（制御器）</h3>
+<p style="font-family:'Times New Roman', serif;font-size:46px;font-style:italic;line-height:1.4">u = a [ V(s) − v ] + λ ( v<span style="color:#B8322A">前</span> − v )</p>
+<ul style="font-size:28px;line-height:1.6;color:#3E4852">
+<li><i>s</i>：前の車との車間</li>
+<li><i>V</i>(<i>s</i>)：車間 <i>s</i> のときに出したい速度</li>
+<li><i>a</i>：出したい速度へ合わせる速さ（P ゲイン）</li>
+<li><i>λ</i>：前の車との速度差への反応（車間の変化率への D 動作）</li>
+</ul>
+</div>
+</div>
+<p style="font-size:24px;line-height:1.5;color:#4A5560">前半は最適速度モデル（坂東昌子ら, 1995）。相対速度の項まで入れた全体は FVD モデル（Jiang ら, 2001）と呼ばれます。</p>
+<aside>車は、加速度を指令すると速度が変わり、速度で位置が変わる、積分器2つの制御対象として書きます。エンジンの遅れは捨てました。運転者は制御器です。車間 s から出したい速度 V(s) を決め、自分の速度との差に a をかける。これは速度の P 制御です。さらに前の車との速度差、つまり車間の変化率に λ をかける。これは車間に対する D 動作にあたります。式はこれだけです。</aside>
+</section>

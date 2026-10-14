@@ -1,0 +1,27 @@
+<section id="sagmodel" data-transition="fade" style="background:#F1F3F4;color:#1B2128;font-family:'BIZ UDPGothic', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:24px;font-weight:700;color:#B8322A;letter-spacing:3px">サグ部のモデル</p>
+<h2 style="font-family:'Dela Gothic One', 'BIZ UDPGothic', sans-serif;font-size:72px;font-weight:400;line-height:1.2">外乱と目標の変化は、制御では別物</h2>
+<p style="font-family:'Times New Roman', serif;font-size:38px;font-style:italic;background:#FBFBF9;border:2px solid #D5DBE0;border-radius:12px;padding:20px 32px">u = a [ V(s − Δs·h(x)) − v ] + λ ( v前 − v ),　 d = −(1 − κ) g θ(x)</p>
+<p style="font-size:24px;line-height:1.5;color:#4A5560">θ：勾配（−4% から +4% へ）　κ = 0.5：アクセルで補う割合　h(x)：上り坂の度合い（0〜1）　Δs：上り坂で車間の感覚が広がる量</p>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#DFECF2;border-radius:16px;padding:32px 40px">
+<h3 style="font-size:34px;font-weight:700">坂の外乱 d</h3>
+<ul style="font-size:26px;line-height:1.6;color:#3E4852">
+<li>アクセルで補いきれない分が、車に入る</li>
+<li>速度ループは P 制御なので、定常偏差が残る</li>
+<li>大きさは (1−κ)gθ/a = 0.13 m/s（時速 0.5 km）</li>
+</ul>
+<p style="font-size:30px;font-weight:700;color:#24698A">フィードバックで、ほぼ消える</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#F6DCD2;border-radius:16px;padding:32px 40px">
+<h3 style="font-size:34px;font-weight:700">車間感覚のずれ Δs</h3>
+<ul style="font-size:26px;line-height:1.6;color:#3E4852">
+<li>同じ車間でも、出したい速度が下がる</li>
+<li>目標 V(s) が動き、平衡点そのものが動く</li>
+<li>Δs = 3 m で、上り坂で通れる量は平坦な道の 80 %</li>
+</ul>
+<p style="font-size:30px;font-weight:700;color:#B8322A">ゲイン a を上げても、直らない</p>
+</div>
+</div>
+<aside>サグの効果を、運転者の式に二つの項として入れました。一つは坂の外乱 d。アクセルで補いきれない分が車に入ります。ところが速度のループは P 制御なので、残る定常偏差は時速0.5km程度。フィードバックでほとんど消えてしまいます。もう一つは、上り坂で車間の感覚が Δs だけ広がる効果です。これは外乱ではなく目標そのものの変化で、平衡点が動き、上り坂で通れる量が下がります。Δs=3m で平坦な道の80%。ループの外側の変化なので、ゲインを上げても直りません。Δs の値は観測に合わせて私たちが置いた仮定です。</aside>
+</section>

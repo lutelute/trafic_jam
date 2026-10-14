@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自然渋滞はなぜ起きるのか（スライド）</title>
+<style>
+/* Viewer for the Slides-format files in slides/*.html (1920x1080 sections). */
+:root { --bg: #0e1116; --bar: #151a20; --fg: #e4e8ec; --muted: #97a2ae; --line: #2a3139; }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); font-family: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", sans-serif; }
+#app { position: fixed; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; }
+#viewport { position: relative; overflow: hidden; cursor: pointer; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 50% 50%; }
+#stage > section { position: absolute; inset: 0; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; opacity: 0; visibility: hidden; transition: opacity .25s; font-size: 32px; }
+#stage > section.on { opacity: 1; visibility: visible; }
+#stage section * { margin: 0; box-sizing: border-box; }
+#stage section h1 { font-size: 96px; font-weight: 600; line-height: 1.1; }
+#stage section h2 { font-size: 64px; font-weight: 600; line-height: 1.15; }
+#stage section h3 { font-size: 44px; font-weight: 600; line-height: 1.2; }
+#stage section p { line-height: 1.4; }
+#stage section ul, #stage section ol { padding-left: 1.3em; }
+#stage section div:not([style*="display"]) { display: flex; flex-direction: column; }
+#stage section table { border-collapse: collapse; width: 100%; }
+#stage section th, #stage section td { padding: .35em .6em; text-align: left; border-bottom: 1px solid rgba(128, 128, 128, .35); }
+#stage section a { color: inherit; }
+#stage section aside { display: none; }
+#stage section svg { display: block; }
+#stage iframe { border: 0; background: transparent; }
+#bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 16px; background: var(--bar); border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+#bar .title { margin-right: auto; }
+#count { font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center; }
+button { font: inherit; color: var(--fg); background: #1b2128; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+button:focus-visible { outline: 2px solid #7aa7ff; outline-offset: 2px; }
+#notes { max-height: 28vh; overflow: auto; padding: 10px 16px 14px; font-size: 15px; line-height: 1.75; background: var(--bar); border-top: 1px solid var(--line); white-space: pre-wrap; }
+#err { padding: 24px; color: #ff8a80; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="viewport" aria-live="polite"><div id="stage"></div></div>
+  <div id="notes" hidden></div>
+  <div id="bar">
+    <span class="title" id="title">読み込み中…</span>
+    <button type="button" id="prev">前へ</button>
+    <span id="count">– / –</span>
+    <button type="button" id="next">次へ</button>
+    <button type="button" id="notesBtn" aria-pressed="false">ノート</button>
+    <button type="button" id="fsBtn">全画面</button>
+  </div>
+</div>
+<script>
+(() => {
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const stage = document.getElementById('stage');
+  const viewport = document.getElementById('viewport');
+  const notesEl = document.getElementById('notes');
+  let slides = [], idx = 0;
+
+  // <x-connector x1 y1 x2 y2 head> → a line with an arrowhead, in slide coordinates.
+  function renderConnector(el) {
+    const x1 = +el.getAttribute('x1'), y1 = +el.getAttribute('y1'), x2 = +el.getAttribute('x2'), y2 = +el.getAttribute('y2');
+    const head = el.getAttribute('head') || 'end';
+    const color = el.style.color || '#000';
+    const w = parseFloat(el.style.borderWidth) || 2;
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('width', 1920); svg.setAttribute('height', 1080); svg.setAttribute('viewBox', '0 0 1920 1080');
+    svg.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;overflow:visible';
+    const th = Math.atan2(y2 - y1, x2 - x1), h = 6 + 3 * w, hw = h * 0.55;
+    const arrow = (x, y, a) => {
+      const p = document.createElementNS(SVGNS, 'polygon');
+      const bx = x - h * Math.cos(a), by = y - h * Math.sin(a);
+      p.setAttribute('points', `${x},${y} ${bx + hw * Math.sin(a)},${by - hw * Math.cos(a)} ${bx - hw * Math.sin(a)},${by + hw * Math.cos(a)}`);
+      p.setAttribute('fill', color);
+      svg.appendChild(p);
+    };
+    const endCut = head === 'end' || head === 'both' ? h * 0.8 : 0;
+    const startCut = head === 'both' ? h * 0.8 : 0;
+    const line = document.createElementNS(SVGNS, 'line');
+    line.setAttribute('x1', x1 + startCut * Math.cos(th)); line.setAttribute('y1', y1 + startCut * Math.sin(th));
+    line.setAttribute('x2', x2 - endCut * Math.cos(th)); line.setAttribute('y2', y2 - endCut * Math.sin(th));
+    line.setAttribute('stroke', color); line.setAttribute('stroke-width', w);
+    if (el.style.borderStyle === 'dashed') line.setAttribute('stroke-dasharray', `${3 * w} ${2 * w}`);
+    svg.appendChild(line);
+    if (endCut) arrow(x2, y2, th);
+    if (startCut) arrow(x1, y1, th + Math.PI);
+    el.replaceWith(svg);
+  }
+
+  // <x-shape kind> → an SVG of the same size (only the kinds this deck needs, plus simple fallbacks).
+  function renderShape(el) {
+    const w = parseFloat(el.style.width) || 100, h = parseFloat(el.style.height) || 100;
+    const fill = el.style.backgroundColor || el.style.background || '#888';
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('width', w); svg.setAttribute('height', h); svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.style.flex = 'none';
+    if (el.style.position === 'absolute') svg.style.cssText += `;position:absolute;left:${el.style.left};top:${el.style.top}`;
+    const kind = el.getAttribute('kind');
+    let shape;
+    if (kind === 'arrow-right' || kind === 'arrow-left') {
+      shape = document.createElementNS(SVGNS, 'polygon');
+      let pts = [[0, .25], [.6, .25], [.6, 0], [1, .5], [.6, 1], [.6, .75], [0, .75]];
+      if (kind === 'arrow-left') pts = pts.map(([x, y]) => [1 - x, y]);
+      shape.setAttribute('points', pts.map(([x, y]) => `${x * w},${y * h}`).join(' '));
+    } else if (kind === 'ellipse') {
+      shape = document.createElementNS(SVGNS, 'ellipse');
+      shape.setAttribute('cx', w / 2); shape.setAttribute('cy', h / 2); shape.setAttribute('rx', w / 2); shape.setAttribute('ry', h / 2);
+    } else {
+      shape = document.createElementNS(SVGNS, 'rect');
+      shape.setAttribute('width', w); shape.setAttribute('height', h);
+    }
+    shape.setAttribute('fill', fill);
+    svg.appendChild(shape);
+    el.replaceWith(svg);
+  }
+
+  async function loadSlide(id) {
+    let html = await (await fetch(`slides/${encodeURIComponent(id)}.html`)).text();
+    // x-embed holds a whole small page; keep its raw text for an iframe before the HTML parser touches it.
+    const embeds = [];
+    html = html.replace(/<x-embed\b([^>]*)>([\s\S]*?)<\/x-embed>/g, (m, attrs, inner) => {
+      embeds.push(inner);
+      return `<div data-embed="${embeds.length - 1}"${attrs}></div>`;
+    });
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html.trim();
+    const sec = tpl.content.querySelector('section');
+    sec.querySelectorAll('[data-embed]').forEach(d => {
+      const f = document.createElement('iframe');
+      f.setAttribute('sandbox', 'allow-scripts');
+      f.setAttribute('style', d.getAttribute('style'));
+      f.setAttribute('title', 'モデルのアニメーション');
+      f.dataset.src = embeds[+d.dataset.embed];
+      d.replaceWith(f);
+    });
+    sec.querySelectorAll('x-connector').forEach(renderConnector);
+    sec.querySelectorAll('x-shape').forEach(renderShape);
+    const aside = sec.querySelector('aside');
+    sec.dataset.notes = aside ? aside.textContent.trim() : '';
+    return sec;
+  }
+
+  function fit() {
+    const s = Math.min(viewport.clientWidth / 1920, viewport.clientHeight / 1080);
+    stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+
+  function go(i) {
+    if (!slides.length) return;
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    const old = slides[idx];
+    old.classList.remove('on');
+    old.querySelectorAll('iframe').forEach(f => f.removeAttribute('srcdoc'));
+    idx = i;
+    const cur = slides[idx];
+    cur.classList.add('on');
+    cur.querySelectorAll('iframe').forEach(f => { f.srcdoc = f.dataset.src; });   // restart animations on each visit
+    document.getElementById('count').textContent = `${idx + 1} / ${slides.length}`;
+    notesEl.textContent = cur.dataset.notes || '（ノートなし）';
+    history.replaceState(null, '', `#${idx + 1}`);
+  }
+
+  async function init() {
+    try {
+      const deck = await (await fetch('deck.json')).json();
+      document.title = `${deck.title}（スライド）`;
+      document.getElementById('title').textContent = deck.title;
+      for (const f of Object.values(deck.faces || {})) {
+        if (!f.href) continue;
+        const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = f.href; document.head.appendChild(l);
+      }
+      slides = await Promise.all(deck.order.map(loadSlide));
+      slides.forEach(s => stage.appendChild(s));
+      fit();
+      idx = 0;
+      go((parseInt(location.hash.slice(1), 10) || 1) - 1);
+    } catch (e) {
+      viewport.innerHTML = `<p id="err">スライドを読み込めませんでした（${e.message}）。ローカルで見るときは、このフォルダを http サーバーで配信してください。</p>`;
+    }
+  }
+
+  document.getElementById('prev').addEventListener('click', () => go(idx - 1));
+  document.getElementById('next').addEventListener('click', () => go(idx + 1));
+  viewport.addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    const r = viewport.getBoundingClientRect();
+    go(idx + (e.clientX - r.left < r.width / 3 ? -1 : 1));
+  });
+  const notesBtn = document.getElementById('notesBtn');
+  function toggleNotes() {
+    notesEl.hidden = !notesEl.hidden;
+    notesBtn.setAttribute('aria-pressed', String(!notesEl.hidden));
+    fit();
+  }
+  notesBtn.addEventListener('click', toggleNotes);
+  function toggleFs() {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+  document.getElementById('fsBtn').addEventListener('click', toggleFs);
+  window.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest('button')) return;
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); go(idx + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key === 'n' || e.key === 'N') toggleNotes();
+    else if (e.key === 'f' || e.key === 'F') toggleFs();
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', () => go((parseInt(location.hash.slice(1), 10) || 1) - 1));
+  init();
+})();
+</script>
+</body>
+</html>

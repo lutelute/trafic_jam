@@ -44,7 +44,7 @@ function axes(){g.fillStyle='#11161C';g.fillRect(0,0,Wd,Hd);
 g.fillStyle='rgba(255,255,255,.07)';g.fillRect(pl,Y(G0+GL),pw,Y(G0)-Y(G0+GL));
 g.strokeStyle='#2A313A';g.lineWidth=1;g.font='24px '+F;g.fillStyle='#B8C2CC';g.textAlign='right';g.textBaseline='middle';
 for(const m of[0,1000,2000,3000]){const y=Y(m);g.beginPath();g.moveTo(pl,y);g.lineTo(pl+pw,y);g.stroke();g.fillText(m+' m',pl-12,y)}
-g.textAlign='center';g.textBaseline='top';for(let s=120;s<=600;s+=120){const xx=pl+s*cw;g.beginPath();g.moveTo(xx,pt);g.lineTo(xx,pt+ph);g.stroke();g.fillText(s/60+' 分',xx,pt+ph+14)}
+g.textAlign='center';g.textBaseline='top';for(let s=120;s<=600;s+=120){const xx=pl+s*cw;g.beginPath();g.moveTo(xx,pt);g.lineTo(xx,pt+ph);g.stroke();g.textAlign=s===600?'right':'center';g.fillText(s/60+' 分',xx,pt+ph+14)}
 g.textAlign='left';g.textBaseline='top';g.fillStyle='#DCE2E7';g.fillText('道路の時空図（モデルの計算、10分間）',pl,14)}
 function labels(){g.font='700 24px '+F;g.textAlign='left';g.textBaseline='middle';g.fillStyle='#F1F3F4';g.fillText('上り坂',pl+10,Y(G0+GL*.75));g.fillText('下り坂',pl+10,Y(G0+GL*.25))}
 let c=0,t0=null,hold=0;

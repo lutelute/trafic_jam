@@ -15,7 +15,7 @@ const cv=document.getElementById('c'),g=cv.getContext('2d');g.scale(2,2);
 const Wd=1664,Hd=492,pl=120,pr=28,pt=22,pb=62,pw=Wd-pl-pr,ph=Hd-pt-pb,cw=pw/smp.length,F='"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif';
 function axes(){g.fillStyle='#11161C';g.fillRect(0,0,Wd,Hd);g.strokeStyle='#2A313A';g.lineWidth=1;g.font='24px '+F;g.fillStyle='#B8C2CC';g.textAlign='right';g.textBaseline='middle';
 for(const m of[0,100,200]){const y=pt+ph-m/L*ph;g.beginPath();g.moveTo(pl,y);g.lineTo(pl+pw,y);g.stroke();g.fillText(m+' m',pl-14,y)}
-g.textAlign='center';g.textBaseline='top';for(let s=30;s<=180;s+=30){const xx=pl+s/.25*cw;g.beginPath();g.moveTo(xx,pt);g.lineTo(xx,pt+ph);g.stroke();g.fillText(s+' 秒',xx,pt+ph+14)}
+g.textAlign='center';g.textBaseline='top';for(let s=30;s<=180;s+=30){const xx=pl+s/.25*cw;g.beginPath();g.moveTo(xx,pt);g.lineTo(xx,pt+ph);g.stroke();g.textAlign=s===180?'right':'center';g.fillText(s+' 秒',xx,pt+ph+14)}
 g.fillStyle='#EF6A5F';g.fillRect(pl-1,pt,3,ph);g.textAlign='left';g.fillText('ブレーキ',pl+8,pt+ph+14)}
 let c=0,t0=null,hold=0;
 function frame(ts){if(t0===null){t0=ts;axes()}const target=Math.min(smp.length,Math.floor((ts-t0)/1000*80));
